@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "08219259b34e45ca9948ef4f3dc16a42.vfs.cloud9.us-east-1.amazonaws.com",
+    "thepost.eba-3zbtxvkp.us-west-2.elasticbeanstalk.com",
     "testserver",
 ]
 
