@@ -1,0 +1,10 @@
+{% if user.is_authenticated %} 
+    <ul class="nav nav-pills nav-fill">
+        <li class="nav-item">
+            <a class="nav-link {% if not follow_index %}active{% endif %}" href="{% url "index" %}">Всё подряд</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if follow_index %}active{% endif %}" href="{% url "follow_index" %}">Избранное</a>
+        </li>
+    </ul>
+{% endif %}

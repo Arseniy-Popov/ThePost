@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load filters %}
+
+{% block head %}
+	Последние записи
+{% endblock %}
+
+{% block content %}
+<main role="main" class="container">
+    <div class="row">
+        <div class="col-md-4 mb-3 mt-1">
+            <div class="card  shadow-sm">
+                <div class="card-body">
+                    <div class="h2">
+                        {{ author.first_name }} {{ author.last_name }}
+                    </div>
+                    <div class="h3 text-muted">
+                        @{{ author.username }}
+                    </div>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <div class="h6 text-muted">
+                            Подписчиков: XXX <br />
+                            Подписок: XXX
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="h6 text-muted">
+							{% load filters %}
+                            Записей: {{ author | author_number_posts }}
+                        </div>
+                    </li>
+                    {% include "subscribe.html" with author=author user=user %}
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-8">
+            {% for post in page %}
+                {% include "post.html" with post=post %}
+            {% endfor %}
+            {% include "paginator.html" with items=posts paginator=paginator%}
+        </div>
+    </div>
+</main>
+{% endblock %}

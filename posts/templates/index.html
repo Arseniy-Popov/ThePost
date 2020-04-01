@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block head %}
+	Последние записи
+{% endblock %}
+
+{% block content %}
+	<main role="main" class="container">
+		<div class="row">
+			<div class="col-md-2">
+			</div>
+			<div class="col-md-8">
+				{% block header %}
+				{% endblock %}
+			    {% block menu %}
+				    <div class="card mb-3 mt-1 border-0">
+					    {% include "menu.html" with user=user follow_index=follow_index%}
+				    </div>
+			    {% endblock %}
+			    {% load cache %}
+			    {% cache 2 index_page page %}
+					{% for post in page %}
+						{% include "post.html" with post=post %}
+					{% endfor %}
+				{% endcache %}
+			    {% include "paginator.html" with items=page paginator=paginator%}
+			</div>
+		</div>
+	</div>
+{% endblock %}
