@@ -2,12 +2,10 @@
 
 __pycache__/
 
-static/
 media/
 sent_emails/
 
-db.sqlite3
-
+*.sqlite3
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*

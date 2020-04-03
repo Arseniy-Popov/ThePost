@@ -79,17 +79,31 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "thepost.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+if "RDS_HOSTNAME" in os.environ:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
+            "NAME": os.environ["RDS_DB_NAME"],
+            "USER": os.environ["RDS_USERNAME"],
+            "PASSWORD": os.environ["RDS_PASSWORD"],
+            "HOST": os.environ["RDS_HOSTNAME"],
+            "PORT": os.environ["RDS_PORT"],
+        }
     }
-}
-
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
+            "NAME": "thepost",
+            "USER": "arseniypopov",
+            "PASSWORD": "password",
+            "HOST": "localhost",
+            "PORT": "",
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -139,26 +153,5 @@ EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 
 SITE_ID = 1
-
-# Caching
-
-CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
-# TEST_CACHES = {"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
-
-# Logging
-
-# LOGGING = {
-#     "version": 1,
-#     "filters": {"require_debug_true": {"()": "django.utils.log.RequireDebugTrue"}},
-#     "handlers": {
-#         "console": {
-#             "level": "DEBUG",
-#             "filters": ["require_debug_true"],
-#             "class": "logging.StreamHandler",
-#         }
-#     },
-#     "loggers": {"django.db.backends": {"level": "DEBUG", "handlers": ["console"]}},
-# }
-
 
 INTERNAL_IPS = ["127.0.0.1"]

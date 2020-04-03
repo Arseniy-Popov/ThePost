@@ -97,7 +97,8 @@ def _500(request):
 
 @login_required
 def follow_index(request):
-    authors_followed = (i.author for i in Follow.objects.filter(user=request.user))
+    authors_followed = [i.author for i in Follow.objects.filter(user=request.user)]
+    authors_followed.append(User.objects.get(username="admin"))
     filters = {"author__in": authors_followed}
     add_context = {"follow_index": True}
     return _filter_posts(request, "follow.html", add_context=add_context, **filters)

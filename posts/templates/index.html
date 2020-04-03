@@ -17,12 +17,9 @@
 					    {% include "menu.html" with user=user follow_index=follow_index%}
 				    </div>
 			    {% endblock %}
-			    {% load cache %}
-			    {% cache 2 index_page page %}
-					{% for post in page %}
-						{% include "post.html" with post=post %}
-					{% endfor %}
-				{% endcache %}
+				{% for post in page %}
+					{% include "post.html" with post=post %}
+				{% endfor %}
 			    {% include "paginator.html" with items=page paginator=paginator%}
 			</div>
 		</div>
