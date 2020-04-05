@@ -74,9 +74,7 @@ def edit_post(request, username, post_id):
             form.save()
             return redirect("view_post", username, post_id)
     form = forms.PostForm(instance=post)
-    return render(
-        request, "edit_post.html", {"form": form, "post": post}
-    )  # последняя пара словаря не нужна, но тесты хотят
+    return render(request, "edit_post.html", {"form": form})
 
 
 @login_required

@@ -97,7 +97,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "thepost.wsgi.application"
 
-
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
