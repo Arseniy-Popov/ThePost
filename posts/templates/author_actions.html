@@ -1,0 +1,24 @@
+{% load filters %}
+<div class="card-body">
+    {% if author == user %}
+        <div class="dropdown">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Управление
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item disabled" href=# >Редактировать</a>
+                <a class="dropdown-item" href="{% url 'password_change' %} ">Поменять пароль</a>
+            </div>
+        </div>
+    {% elif author|is_followed:user %}
+        <a class="btn btn-md btn-light" 
+            href="{% url 'unfollow' author.username %}" role="button"> 
+            Отписаться 
+        </a> 
+    {% else %}
+        <a class="btn btn-md btn-primary" 
+            href="{% url 'follow' author.username %}" role="button">
+            Подписаться 
+        </a>
+    {% endif %}
+</div>

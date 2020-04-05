@@ -11,6 +11,10 @@ sorl-thumbnail = "*"
 django-debug-toolbar = "*"
 django = "*"
 psycopg2 = "*"
+django-storages = "*"
+boto3 = "*"
+python-dotenv = "*"
+parameterized = "*"
 
 [requires]
 python_version = "3.6"

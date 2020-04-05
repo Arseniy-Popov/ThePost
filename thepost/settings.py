@@ -12,24 +12,41 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "y8#n5edlm7vmvc%s=@3-=vur_+hh-#&f-uj2k1si-7^a81230o"
+SECRET_KEY = os.environ["SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if "RDS_HOSTNAME" in os.environ:
+    DEBUG = False
+else:
+    DEBUG = True
 
 ALLOWED_HOSTS = [
     "08219259b34e45ca9948ef4f3dc16a42.vfs.cloud9.us-east-1.amazonaws.com",
     "thepost.eba-3zbtxvkp.us-west-2.elasticbeanstalk.com",
+    "thepost.arseniypopov.com",
     "testserver",
+    "localhost",
 ]
+
+if "RDS_HOSTNAME" in os.environ:
+    SECURE_HSTS_SECONDS = 0
+    # SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_REFERRER_POLICY = "same-origin"
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # Application definition
 
@@ -46,6 +63,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "sorl.thumbnail",
     "debug_toolbar",
+    "storages",
 ]
 
 MIDDLEWARE = [
@@ -79,8 +97,43 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "thepost.wsgi.application"
 
+
+# Password validation
+# https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
+
+# Internationalization
+# https://docs.djangoproject.com/en/2.2/topics/i18n/
+
+LANGUAGE_CODE = "ru"
+TIME_ZONE = "UTC"
+USE_I18N = True
+USE_L10N = True
+USE_TZ = True
+
+# Login
+
+LOGIN_URL = "/auth/login/"
+LOGIN_REDIRECT_URL = "index"
+
+# Emails
+
+EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+
+SITE_ID = 1
+
+INTERNAL_IPS = ["127.0.0.1"]
+
 # Database
-# https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 if "RDS_HOSTNAME" in os.environ:
     DATABASES = {
@@ -105,53 +158,26 @@ else:
         }
     }
 
-# Password validation
-# https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
+# AWS
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-    },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
-]
+if "RDS_HOSTNAME" in os.environ:
+    AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
+    AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
+    AWS_STORAGE_BUCKET_NAME = "arseniypopov-thepost"
+    AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+    AWS_LOCATION = "media"
+    AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
 
+# Static files
 
-# Internationalization
-# https://docs.djangoproject.com/en/2.2/topics/i18n/
-
-LANGUAGE_CODE = "ru"
-
-TIME_ZONE = "UTC"
-
-USE_I18N = True
-
-USE_L10N = True
-
-USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.2/howto/static-files/
-
-STATIC_URL = "/static/"
-# STATIC_ROOT = os.path.join(BASE_DIR, "static")
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_URL = "/static/"
 
-MEDIA_URL = "/media/"
+# Media files
+
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
-# Login
-
-LOGIN_URL = "/auth/login/"
-LOGIN_REDIRECT_URL = "index"
-
-# Emails
-
-EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
-
-SITE_ID = 1
-
-INTERNAL_IPS = ["127.0.0.1"]
+if "RDS_HOSTNAME" in os.environ:
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
+    DEFAULT_FILE_STORAGE = "thepost.storage_backends.MediaStorage"
+else:
+    MEDIA_URL = "/media/"

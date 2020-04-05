@@ -15,23 +15,25 @@
                         {{ author.first_name }} {{ author.last_name }}
                     </div>
                     <div class="h3 text-muted">
-                        @{{ author.username }}
+                        <a href="{% url 'profile' author.username %}">
+                            @{{ author.username }}
+                        </a>
                     </div>
                 </div>
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                        <div class="h6 text-muted">
-                            Подписчиков: XXX <br />
-                            Подписок: XXX
-                        </div>
-                    </li>
-                    <li class="list-group-item">
-                        <div class="h6 text-muted">
+                    <div class="h6 text">
+                        <a href=# class="list-group-item list-group-item-action border-0">
+                            Подписчиков: <span class="badge badge-light">XXX</span> <br />
+                        </a>
+                        <a href=# class="list-group-item list-group-item-action border-0">
+                            Подписок: <span class="badge badge-light">XXX</span>
+                        </a>
+                        <a href=# class="list-group-item list-group-item-action border-0">
 							{% load filters %}
-                            Записей: {{ author | author_number_posts }}
-                        </div>
-                    </li>
-                    {% include "subscribe.html" with author=author user=user %}
+                            Записей: <span class="badge badge-light"> {{ author | author_number_posts }} </span>
+                        </a>
+                    </div>
+                    {% include "author_actions.html" with author=author user=user %}
                 </ul>
             </div>
         </div>
