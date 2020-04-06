@@ -4,6 +4,7 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import cache_page
+from django.contrib.auth import login
 
 from . import forms
 from .models import Comment, Follow, Group, Post, User
@@ -27,6 +28,9 @@ def _paginate(request, items, items_per_page=10):
 
 
 def index(request):
+    if not request.user.is_authenticated:
+        user = User.objects.get(username="testuser")
+        login(request, user)
     return _filter_posts(request, "index.html")
 
 

@@ -28,6 +28,9 @@ class Post(models.Model):
     )
     image = models.ImageField(upload_to="posts/", blank=True, null=True)
 
+    def __str__(self):
+        return f"Post by {self.author}, {self.pub_date}"
+
 
 class Comment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
