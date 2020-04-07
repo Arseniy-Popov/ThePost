@@ -1,10 +1,10 @@
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import cache_page
-from django.contrib.auth import login
 
 from . import forms
 from .models import Comment, Follow, Group, Post, User
@@ -27,10 +27,14 @@ def _paginate(request, items, items_per_page=10):
     return paginator, page
 
 
-def index(request):
+def _login_as_testuser(request):
     if not request.user.is_authenticated:
         user = User.objects.get(username="testuser")
         login(request, user)
+
+
+def index(request):
+    _login_as_testuser(request)
     return _filter_posts(request, "index.html")
 
 
@@ -100,8 +104,7 @@ def _500(request):
 
 @login_required
 def follow_index(request):
-    authors_followed = [i.author for i in Follow.objects.filter(user=request.user)]
-    authors_followed.append(User.objects.get(username="admin"))
+    authors_followed = (i.author for i in Follow.objects.filter(user=request.user))
     filters = {"author__in": authors_followed}
     add_context = {"follow_index": True}
     return _filter_posts(request, "follow.html", add_context=add_context, **filters)

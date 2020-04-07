@@ -26,3 +26,13 @@ def is_followed(author, user):
 @register.filter
 def comment_count(post):
     return Comment.objects.filter(post=post).count()
+
+
+@register.filter
+def follower_count(user):
+    return Follow.objects.filter(author=user).count()
+
+
+@register.filter
+def following_count(user):
+    return Follow.objects.filter(user=user).count()
