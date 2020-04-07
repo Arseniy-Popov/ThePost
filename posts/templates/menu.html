@@ -1,10 +1,10 @@
 {% if user.is_authenticated %} 
-    <ul class="nav nav-pills nav-fill">
-        <li class="nav-item">
-            <a class="nav-link {% if not follow_index %}active{% endif %}" href="{% url "index" %}">Всё подряд</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {% if follow_index %}active{% endif %}" href="{% url "follow_index" %}">Подписки</a>
-        </li>
-    </ul>
+    <div class="row">
+        <div class="col">
+            <a class="btn btn-outline-primary btn-block border-0 {% if not follow_index %}active{% endif %}" role="button" href="{% url "index" %}">Всё подряд</a>
+        </div>
+        <div class="col">
+            <a class="btn btn-outline-primary btn-block border-0 {% if follow_index %}active{% endif %}" role="button" href="{% url "follow_index" %}">Подписки</a>
+        </div>
+    </div>
 {% endif %}
