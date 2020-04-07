@@ -23,10 +23,16 @@
                 <ul class="list-group list-group-flush">
                     <div class="h6 text">
                         <a href=# class="list-group-item list-group-item-action border-0">
-                            Подписчиков: <span class="badge badge-light">XXX</span> <br />
+                            Подписчиков:
+                            <span class="badge badge-light">
+                                {{ author | follower_count }}
+                            </span> <br />
                         </a>
                         <a href=# class="list-group-item list-group-item-action border-0">
-                            Подписок: <span class="badge badge-light">XXX</span>
+                            Подписок:
+                            <span class="badge badge-light">
+                                {{ author | following_count }}
+                            </span> <br />
                         </a>
                         <a href=# class="list-group-item list-group-item-action border-0">
 							{% load filters %}
