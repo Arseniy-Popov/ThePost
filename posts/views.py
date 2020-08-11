@@ -11,7 +11,7 @@ from .models import Comment, Follow, Group, Post, User
 
 
 def _filter_posts(request, template, add_context={}, **filters):
-    posts = Post.objects.filter(**filters).order_by("-pub_date").all()
+    posts = Post.objects.filter(**filters).order_by("-date").all()
     paginator, page = _paginate(request, posts)
     return render(
         request,
@@ -29,7 +29,7 @@ def _paginate(request, items, items_per_page=10):
 
 def _login_as_testuser(request):
     if not request.user.is_authenticated:
-        user = User.objects.get(username="testuser")
+        user, _ = User.objects.get_or_create(username="testuser")
         login(request, user)
 
 
@@ -104,7 +104,7 @@ def _500(request):
 
 @login_required
 def follow_index(request):
-    authors_followed = (i.author for i in Follow.objects.filter(user=request.user))
+    authors_followed = (i.author for i in Follow.objects.filter(followee=request.user))
     filters = {"author__in": authors_followed}
     add_context = {"follow_index": True}
     return _filter_posts(request, "follow.html", add_context=add_context, **filters)

@@ -24,7 +24,7 @@
                 <a href="{% url 'view_post' post.author post.id %}" class="btn btn-outline-secondary btn-sm border-0" role="button">
                     <i class="far fa-comment"></i> 
                     {% if post|comment_count %}
-                        ({{ post|comment_count }})
+                        {{ post|comment_count }}
                     {% endif %}
                 </a>
                 {% if post.author == user %}

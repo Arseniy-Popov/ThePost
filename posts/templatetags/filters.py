@@ -2,6 +2,7 @@ from django import template
 
 from posts.models import Comment, Follow, Post
 
+
 register = template.Library()
 
 
@@ -18,7 +19,7 @@ def user_is_author(user, post):
 @register.filter
 def is_followed(author, user):
     try:
-        return Follow.objects.get(author=author, user=user)
+        return Follow.objects.get(follower=author, followee=user)
     except:
         return False
 
@@ -30,9 +31,9 @@ def comment_count(post):
 
 @register.filter
 def follower_count(user):
-    return Follow.objects.filter(author=user).count()
+    return Follow.objects.filter(followee=user).count()
 
 
 @register.filter
 def following_count(user):
-    return Follow.objects.filter(user=user).count()
+    return Follow.objects.filter(follower=user).count()

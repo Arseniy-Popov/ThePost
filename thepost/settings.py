@@ -12,9 +12,9 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ["SECRET_KEY"]
+SECRET_KEY = "q#_d^-ul&(p&_kx12o#7=(v!35i3*wat#$$!@3)sr5$&t0^tmw"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 if "RDS_HOSTNAME" in os.environ:
@@ -41,7 +41,7 @@ ALLOWED_HOSTS = [
 
 if "RDS_HOSTNAME" in os.environ:
     SECURE_HSTS_SECONDS = 0
-    # SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_REFERRER_POLICY = "same-origin"

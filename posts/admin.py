@@ -5,9 +5,9 @@ from .models import Comment, Follow, Group, Post
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ("text", "pub_date", "author")
+    list_display = ("text", "date", "author")
     search_fields = ("text",)
-    list_filter = ("pub_date", "group", "author")
+    list_filter = ("date", "group", "author")
     empty_value_display = "-пусто-"
 
 
@@ -19,11 +19,11 @@ class GroupAdmin(admin.ModelAdmin):
 
 @admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
-    list_display = ("user", "author")
-    search_fields = ("user", "author")
+    list_display = ("followee", "follower")
+    search_fields = ("followee", "follower")
 
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ("author", "created", "post")
+    list_display = ("author", "date", "post", "text")
     search_fields = ("author",)
