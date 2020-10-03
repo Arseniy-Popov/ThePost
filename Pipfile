@@ -16,6 +16,7 @@ boto3 = "*"
 python-dotenv = "*"
 parameterized = "*"
 gunicorn = "*"
+dotenv = "*"
 
 [requires]
 python_version = "3.6"
