@@ -1,14 +1,6 @@
 .git/*
-
 __pycache__/
-
 media/
 sent_emails/
-
 *.sqlite3
-
 *.env
-# Elastic Beanstalk Files
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml

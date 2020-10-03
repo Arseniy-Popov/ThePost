@@ -15,6 +15,7 @@ django-storages = "*"
 boto3 = "*"
 python-dotenv = "*"
 parameterized = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.6"
