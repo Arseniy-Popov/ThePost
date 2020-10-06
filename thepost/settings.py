@@ -31,7 +31,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "sorl.thumbnail",
     "debug_toolbar",
-    "storages",
 ]
 
 MIDDLEWARE = [
@@ -104,7 +103,7 @@ DATABASES = {
         "NAME": os.getenv("POSTGRES_DB"),
         "USER": os.getenv("POSTGRES_USER"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": "db" if os.getenv("DOCKER") else "",
+        "HOST": "db" if os.getenv("DOCKER") else "localhost",
         "PORT": 5432,
     }
 }

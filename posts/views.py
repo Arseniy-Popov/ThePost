@@ -104,7 +104,7 @@ def _500(request):
 
 @login_required
 def follow_index(request):
-    authors_followed = (i.author for i in Follow.objects.filter(followee=request.user))
+    authors_followed = (i.followee for i in Follow.objects.filter(follower=request.user))
     filters = {"author__in": authors_followed}
     add_context = {"follow_index": True}
     return _filter_posts(request, "follow.html", add_context=add_context, **filters)
@@ -115,15 +115,15 @@ def follow(request, username):
     author = get_object_or_404(User, username=username)
     if (
         author == request.user
-        or Follow.objects.filter(author=author, user=request.user).exists()
+        or Follow.objects.filter(followee=author, follower=request.user).exists()
     ):
         return redirect("profile", author)
-    Follow.objects.create(author=author, user=request.user)
+    Follow.objects.create(followee=author, follower=request.user)
     return redirect("profile", username)
 
 
 @login_required
 def unfollow(request, username):
     author = get_object_or_404(User, username=username)
-    Follow.objects.get(author=author, user=request.user).delete()
+    Follow.objects.get(followee=author, follower=request.user).delete()
     return redirect("profile", username)
