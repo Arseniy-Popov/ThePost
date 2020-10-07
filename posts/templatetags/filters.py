@@ -19,7 +19,7 @@ def user_is_author(user, post):
 @register.filter
 def is_followed(author, user):
     try:
-        return Follow.objects.get(follower=author, followee=user)
+        return Follow.objects.get(follower=user, followee=author)
     except:
         return False
 

@@ -16,15 +16,23 @@ User = get_user_model()
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
+        # users
         users = []
-        for n_users in range(50):
+        for _ in range(50):
             first_name, last_name = names.get_first_name(), names.get_last_name()
-            username = first_name + "_" + last_name
+            username = first_name.lower() + "_" + last_name.lower()
             users.append(
                 User.objects.create_user(
                     first_name=first_name, last_name=last_name, username=username
                 )
             )
+        # test user
+        User.objects.create(username="testuser", first_name="John", last_name="Doe")
+        # follows
+        for follower in users:
+            for followee in random.sample(users, random.randint(0, 50)):
+                Follow.objects.create(follower=follower, followee=followee)
+        # groups
         groups = [
             Group.objects.get_or_create(
                 title="Cats", slug="cats", description="We like cats."
@@ -36,7 +44,8 @@ class Command(BaseCommand):
                 title="Birds", slug="birds", description="We like birds."
             )[0],
         ]
-        for times in range(50):
+        # posts
+        for _ in range(50):
             post = Post.objects.create(
                 text=lorem.get_paragraph(count=random.randint(1, 3)).replace(
                     os.linesep, os.linesep + os.linesep
@@ -44,8 +53,9 @@ class Command(BaseCommand):
                 author=random.choice(users),
                 group=random.choice(groups),
             )
+        # comments
         for post in Post.objects.all():
-            for num_comments in range(random.randint(0, 10)):
+            for _ in range(random.randint(0, 10)):
                 Comment.objects.create(
                     post=post,
                     author=random.choice(users),

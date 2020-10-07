@@ -2,10 +2,12 @@
 
 {% for item in items %}
 <p>
-    <a href="{% url 'profile' item.author.username %}" >
-        @{{ item.author.username }}
-    </a>
-    <br />
+    <div class="d-flex justify-content-between align-items-center">
+        <a href="{% url 'profile' item.author.username %}" >
+            @{{ item.author.username }}
+        </a>
+        <small class="text-muted"> {{ item.date|date:"d.m.y G:i" }} </small>
+    </div>
     {{ item.text|linebreaksbr }}
 
 </p>

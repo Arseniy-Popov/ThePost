@@ -55,7 +55,7 @@ def view_post(request, username, post_id):
     add_context = {
         "author": get_object_or_404(User, username=username),
         "comment_form": forms.CommentForm(),
-        "comments": Comment.objects.filter(post=post),
+        "comments": Comment.objects.filter(post=post).order_by("date"),
     }
     return _filter_posts(request, "profile.html", add_context=add_context, **filters)
 

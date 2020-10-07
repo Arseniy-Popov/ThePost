@@ -6,19 +6,26 @@
         <img class="card-img" src="{{ im.url }}" />
     {% endthumbnail %}
     <div class="card-body">
-        <p class="card-text">
+        <div class="d-flex justify-content-between align-items-center">
             <strong class="d-block text-gray-dark">
                 <a name="post_{{ post.id }}" href="{% url 'profile' post.author.username %}">
                     @{{ post.author }}
                 </a>
+            </strong>
+            <strong class="d-block text-gray-dark">
                 {% if post.group %}
-                    | <a href="{% url 'group' post.group.slug %}">
+                    <a href="{% url 'group' post.group.slug %}">
                         #{{ post.group.slug }}
                     </a>
                 {% endif %}
             </strong>
-            {{ post.text|linebreaksbr }}
-        </p>
+        </div>
+        </br>
+        <div class="d-flex justify-content-between align-items-center">
+            <p>
+                {{ post.text|linebreaksbr }}
+            </p>
+        </div>
         <div class="d-flex justify-content-between align-items-center">
            <div class="btn-group ">
                 <a href="{% url 'view_post' post.author post.id %}" class="btn btn-outline-secondary btn-sm border-0" role="button">
@@ -31,7 +38,7 @@
                     <a class="btn btn-outline-secondary btn-sm border-0" href="{% url 'edit_post' post.author post.id %}" role="button">Редактировать</a>
                 {% endif %}
             </div>
-            <small class="text-muted"> {{ post.pub_date|date:"d.m.y G:i" }} </small>
+            <small class="text-muted"> {{ post.date|date:"d.m.y G:i" }} </small>
         </div>
     </div>
 </div>
