@@ -1,0 +1,4 @@
+{% for post in page %}
+	{% include "post.html" with post=post %}
+{% endfor %}
+{% include "paginator.html" with items=page paginator=paginator%}

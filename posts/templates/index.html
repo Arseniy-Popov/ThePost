@@ -8,6 +8,7 @@
 	<main role="main" class="container">
 		<div class="row">
 			<div class="col-md-2">
+			fgfgdg
 			</div>
 			<div class="col-md-8">
 				{% block header %}
@@ -17,10 +18,7 @@
 					    {% include "menu.html" with user=user follow_index=follow_index%}
 				    </div>
 			    {% endblock %}
-				{% for post in page %}
-					{% include "post.html" with post=post %}
-				{% endfor %}
-			    {% include "paginator.html" with items=page paginator=paginator%}
+				{% include "posts.html" with page=page paginator=paginator %}
 			</div>
 		</div>
 	</div>

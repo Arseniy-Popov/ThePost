@@ -4,3 +4,4 @@ media/
 sent_emails/
 *.sqlite3
 *.env
+.~c9*

@@ -38,10 +38,10 @@ class Group(models.Model):
 
 class Follow(models.Model):
     followee = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="follower"
+        User, on_delete=models.CASCADE, related_name="followers"
     )
     follower = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="followee"
+        User, on_delete=models.CASCADE, related_name="followees"
     )
 
     def __str__(self):

@@ -11,7 +11,7 @@ from .models import Comment, Follow, Group, Post, User
 
 
 def _filter_posts(request, template, add_context={}, **filters):
-    posts = Post.objects.filter(**filters).order_by("-date").all()
+    posts = Post.objects.filter(**filters).order_by("-date")
     paginator, page = _paginate(request, posts)
     return render(
         request,
@@ -45,7 +45,7 @@ def group(request, slug):
 
 def profile(request, username):
     filters = {"author": get_object_or_404(User, username=username)}
-    return _filter_posts(request, "profile.html", **filters)
+    return _filter_posts(request, "profile_posts.html", **filters)
 
 
 @login_required
@@ -57,7 +57,7 @@ def view_post(request, username, post_id):
         "comment_form": forms.CommentForm(),
         "comments": Comment.objects.filter(post=post).order_by("date"),
     }
-    return _filter_posts(request, "profile.html", add_context=add_context, **filters)
+    return _filter_posts(request, "profile_posts.html", add_context=add_context, **filters)
 
 
 @login_required
@@ -104,7 +104,9 @@ def _500(request):
 
 @login_required
 def follow_index(request):
-    authors_followed = (i.followee for i in Follow.objects.filter(follower=request.user))
+    authors_followed = (
+        i.followee for i in Follow.objects.filter(follower=request.user)
+    )
     filters = {"author__in": authors_followed}
     add_context = {"follow_index": True}
     return _filter_posts(request, "follow.html", add_context=add_context, **filters)
@@ -127,3 +129,31 @@ def unfollow(request, username):
     author = get_object_or_404(User, username=username)
     Follow.objects.get(followee=author, follower=request.user).delete()
     return redirect("profile", username)
+
+
+@login_required
+def followers(request, username):
+    followers = User.objects.filter(followees__followee__username=username).order_by(
+        "username"
+    )
+    paginator, page = _paginate(request, followers, items_per_page=15)
+    add_context = {
+        "author": get_object_or_404(User, username=username),
+        "page": page,
+        "paginator": paginator,
+    }
+    return render(request, "profile_follows.html", add_context)
+
+
+@login_required
+def following(request, username):
+    followers = User.objects.filter(followers__follower__username=username).order_by(
+        "username"
+    )
+    paginator, page = _paginate(request, followers, items_per_page=15)
+    add_context = {
+        "author": get_object_or_404(User, username=username),
+        "page": page,
+        "paginator": paginator,
+    }
+    return render(request, "profile_follows.html", add_context)
