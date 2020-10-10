@@ -1,0 +1,16 @@
+<div class="card">
+    <div class="card-header">
+        Featured
+    </div>
+    <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <div class="h6 text">
+                {% for group in groups %}
+                    <a href="{% url 'group' group.slug %}" class="list-group-item list-group-item-action">
+                        {{ group.slug }}
+                    </a>
+                {% endfor %}
+            </div>
+        </ul>
+    </div>
+</div>

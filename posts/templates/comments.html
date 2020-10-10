@@ -9,7 +9,10 @@
         <small class="text-muted"> {{ item.date|date:"d.m.y G:i" }} </small>
     </div>
     {{ item.text|linebreaksbr }}
-
+    </br>
+    {% if item.author == user %}
+        <a class="text-muted small" href="{% url 'edit_comment' item.id %}">Редактировать</a>
+    {% endif %}
 </p>
 {% endfor %}
 

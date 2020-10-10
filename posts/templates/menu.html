@@ -1,10 +1,10 @@
 {% if user.is_authenticated %} 
     <div class="row">
         <div class="col">
-            <a class="btn btn-outline-primary btn-block border-0 {% if not follow_index %}active{% endif %}" role="button" href="{% url "index" %}">Всё подряд</a>
+            <a class="btn btn-outline-primary btn-block border-0 {% include "_active_url.html" with url_name='index' %}" role="button" href="{% url "index" %}">Всё подряд</a>
         </div>
         <div class="col">
-            <a class="btn btn-outline-primary btn-block border-0 {% if follow_index %}active{% endif %}" role="button" href="{% url "follow_index" %}">Подписки</a>
+            <a class="btn btn-outline-primary btn-block border-0 {% include "_active_url.html" with url_name='follow_index' %}" role="button" href="{% url "follow_index" %}">Подписки</a>
         </div>
     </div>
 {% endif %}

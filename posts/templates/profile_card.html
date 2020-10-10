@@ -13,19 +13,19 @@
     </div>
     <ul class="list-group list-group-flush">
         <div class="h6 text">
-            <a href="{% url 'followers' author.username %}" class="list-group-item list-group-item-action {% include "_selected_list_item.html" with url_name='followers' %} border-0 d-flex justify-content-between align-items-center">
+            <a href="{% url 'followers' author.username %}" class="list-group-item list-group-item-action {% include "_active_url.html" with url_name='followers' %} border-0 d-flex justify-content-between align-items-center">
                 Подписчиков:
                 <span class="badge badge-light">
                     {{ author | follower_count }}
                 </span>
             </a>
-            <a href="{% url 'following' author.username %}" class="list-group-item list-group-item-action {% include "_selected_list_item.html" with url_name='following' %} border-0 d-flex justify-content-between align-items-center">
+            <a href="{% url 'following' author.username %}" class="list-group-item list-group-item-action {% include "_active_url.html" with url_name='following' %} border-0 d-flex justify-content-between align-items-center">
                 Подписок:
                 <span class="badge badge-light">
                     {{ author | following_count }}
                 </span>
             </a>
-            <a href="{% url 'profile' author.username %}" class="list-group-item list-group-item-action {% include "_selected_list_item.html" with url_name='profile' %} border-0 d-flex justify-content-between align-items-center">
+            <a href="{% url 'profile' author.username %}" class="list-group-item list-group-item-action {% include "_active_url.html" with url_name='profile' %} border-0 d-flex justify-content-between align-items-center">
                 Записей: <span class="badge badge-light"> {{ author | author_number_posts }} </span>
             </a>
         </div>

@@ -6,7 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import cache_page
 
-from . import forms
+from .forms import CommentForm, PostForm
 from .models import Comment, Follow, Group, Post, User
 
 
@@ -24,13 +24,26 @@ def _paginate(request, items, items_per_page=10):
     paginator = Paginator(items, items_per_page)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
-    return paginator, page
+    return paginator, page  # TODO: return dict and rename
 
 
 def _login_as_testuser(request):
     if not request.user.is_authenticated:
         user, _ = User.objects.get_or_create(username="testuser")
         login(request, user)
+
+
+def _edit_object(request, object_type, object_id, form, redirect, template):
+    object = get_object_or_404(object_type, id=object_id)
+    if object.author != request.user:
+        return redirect
+    if request.method == "POST":
+        form = form(request.POST, request.FILES or None, instance=object)
+        if form.is_valid():
+            form.save()
+            return redirect
+    form = form(instance=object)
+    return render(request, template, {"form": form})
 
 
 def index(request):
@@ -54,44 +67,57 @@ def view_post(request, username, post_id):
     filters = {"id": post.id}
     add_context = {
         "author": get_object_or_404(User, username=username),
-        "comment_form": forms.CommentForm(),
+        "comment_form": CommentForm(),
         "comments": Comment.objects.filter(post=post).order_by("date"),
     }
-    return _filter_posts(request, "profile_posts.html", add_context=add_context, **filters)
+    return _filter_posts(
+        request, "profile_posts.html", add_context=add_context, **filters
+    )
 
 
 @login_required
 def new_post(request):
     if request.method == "POST":
-        form = forms.PostForm(request.POST, request.FILES or None)
+        form = PostForm(request.POST, request.FILES or None)
         if form.is_valid():
             Post(author=request.user, **form.cleaned_data).save()
             return redirect("index")
-    form = forms.PostForm()
+    form = PostForm()
     return render(request, "new_post.html", {"form": form})
 
 
 @login_required
-def edit_post(request, username, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    if post.author != request.user:
-        return redirect("view_post", username, post_id)
-    if request.method == "POST":
-        form = forms.PostForm(request.POST, request.FILES or None, instance=post)
-        if form.is_valid():
-            form.save()
-            return redirect("view_post", username, post_id)
-    form = forms.PostForm(instance=post)
-    return render(request, "edit_post.html", {"form": form})
+def edit_post(request, post_id):
+    return _edit_object(
+        request=request,
+        object_type=Post,
+        object_id=post_id,
+        form=PostForm,
+        redirect=redirect("view_post", post_id),
+        template="edit_post.html",
+    )
 
 
 @login_required
 def new_comment(request, username, post_id):
     post = get_object_or_404(Post, id=post_id)
-    form = forms.CommentForm(request.POST)
+    form = CommentForm(request.POST)
     if form.is_valid():
         Comment.objects.create(author=request.user, post=post, **form.cleaned_data)
     return redirect("view_post", post.author.username, post_id)
+
+
+@login_required
+def edit_comment(request, comment_id):
+    return _edit_object(
+        request=request,
+        username=username,
+        object_type=Comment,
+        object_id=comment_id,
+        form=CommentForm,
+        redirect=redirect("view_post", username, post_id),
+        template="edit_post.html",
+    )
 
 
 def _404(request, exception):
