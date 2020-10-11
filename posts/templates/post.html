@@ -35,10 +35,10 @@
                     {% endif %}
                 </a>
                 {% if post.author == user %}
-                    <a class="btn btn-outline-secondary btn-sm border-0" href="{% url 'edit_post' post.id %}" role="button">Редактировать</a>
+                    <a class="btn btn-outline-secondary btn-sm border-0" href="{% url 'edit_post' post.author.username post.id %}" role="button">Edit</a>
                 {% endif %}
             </div>
-            <small class="text-muted"> {{ post.date|date:"d.m.y G:i" }} </small>
+            <small class="text-muted"> {{ post.date|date:"d-M-y G:i" }} </small>
         </div>
     </div>
 </div>

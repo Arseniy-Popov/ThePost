@@ -1,5 +1,5 @@
 {% if items.has_other_pages %}
-    <nav aria-label="Переключение страниц">
+    <nav aria-label="Pagination">
         <ul class="pagination justify-content-center">
             {% if items.has_previous %}
                 <li class="page-item"><a class="page-link" href="?page={{ items.previous_page_number }}">&laquo; </a></li>
@@ -8,7 +8,7 @@
             {% endif %}
             {% for i in paginator.page_range %}
                 {% if items.number == i %}
-                    <li class="page-item active"><span class="page-link">{{ i }} <span class="sr-only">(текущая)</span></span></li>
+                    <li class="page-item active"><span class="page-link">{{ i }} <span class="sr-only">(current)</span></span></li>
                 {% else %}
                     <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
                 {% endif %}

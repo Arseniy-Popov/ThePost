@@ -6,18 +6,18 @@
         <a href="{% url 'profile' item.author.username %}" >
             @{{ item.author.username }}
         </a>
-        <small class="text-muted"> {{ item.date|date:"d.m.y G:i" }} </small>
+        <small class="text-muted"> {{ item.date|date:"d-M-y G:i" }} </small>
     </div>
     {{ item.text|linebreaksbr }}
     </br>
     {% if item.author == user %}
-        <a class="text-muted small" href="{% url 'edit_comment' item.id %}">Редактировать</a>
+        <a class="text-muted small" href="{% url 'edit_comment' item.author.username item.id %}">Edit</a>
     {% endif %}
 </p>
 {% endfor %}
 
 {% if user.is_authenticated %} 
-            <h6 class="card-title">Добавить комментарий: </h6>
+            <h6 class="card-title">Write a comment: </h6>
             <form
             action="{% url 'new_comment' post.author.username post.id %}"
             method="post">
@@ -25,6 +25,6 @@
                 <div class="form-group">
                     {{ form.text|add_attributes:"class:form-control_&rows:3" }}
                 </div>
-                <button type="submit" class="btn btn-primary">Отправить</button>
+                <button type="submit" class="btn btn-primary">Submit</button>
             </form>
 {% endif %}

@@ -6,8 +6,7 @@ from . import models
 class PostForm(ModelForm):
     class Meta:
         model = models.Post
-        fields = ["text", "group", "image"]
-        help_texts = {"image": "Будет кадрировано в пропорции 960x339."}
+        fields = ["text", "group"]
 
 
 class CommentForm(ModelForm):

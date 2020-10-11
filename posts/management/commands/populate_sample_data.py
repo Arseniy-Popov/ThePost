@@ -2,6 +2,7 @@ import os
 import lorem
 import random
 import names
+import datetime as dt
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -27,7 +28,14 @@ class Command(BaseCommand):
                 )
             )
         # test user
-        User.objects.create(username="testuser", first_name="John", last_name="Doe")
+        try:
+            user = User.objects.get(username="testuser")
+            user.first_name = "John"
+            user.last_name = "Doe"
+            user.save()
+        except User.DoesNotExist:
+            User.objects.create(username="testuser", first_name="John", last_name="Doe")
+        users.append(User.objects.get(username="testuser"))
         # follows
         for follower in users:
             for followee in random.sample(users, random.randint(0, 50)):
@@ -43,21 +51,41 @@ class Command(BaseCommand):
             Group.objects.get_or_create(
                 title="Birds", slug="birds", description="We like birds."
             )[0],
+            None,
         ]
         # posts
-        for _ in range(50):
-            post = Post.objects.create(
-                text=lorem.get_paragraph(count=random.randint(1, 3)).replace(
-                    os.linesep, os.linesep + os.linesep
-                ),
-                author=random.choice(users),
-                group=random.choice(groups),
-            )
+        start_date, end_date = (
+            dt.datetime(year=2020, month=10, day=2).timestamp(),
+            dt.datetime(year=2020, month=10, day=10).timestamp(),
+        )
+        for user in users:
+            for post in range(random.randint(0, 7)):
+                post = Post.objects.create(
+                    text=lorem.get_paragraph(count=random.randint(1, 3)).replace(
+                        os.linesep, os.linesep + os.linesep
+                    ),
+                    author=user,
+                    group=random.choice(groups),
+                )
+                post.date = dt.datetime.fromtimestamp(
+                    random.uniform(start_date, end_date),
+                    tz=dt.timezone(dt.timedelta(hours=0)),
+                )
+                post.save()
         # comments
         for post in Post.objects.all():
+            start_date, end_date = (
+                post.date.timestamp(), 
+                dt.datetime(year=2020, month=10, day=10).timestamp(),
+            )
             for _ in range(random.randint(0, 10)):
-                Comment.objects.create(
+                comment = Comment.objects.create(
                     post=post,
                     author=random.choice(users),
                     text=lorem.get_sentence(count=random.randint(1, 5)),
                 )
+                comment.date = dt.datetime.fromtimestamp(
+                    random.uniform(start_date, end_date),
+                    tz=dt.timezone(dt.timedelta(hours=0)),
+                )
+                comment.save()

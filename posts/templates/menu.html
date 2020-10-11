@@ -1,10 +1,10 @@
 {% if user.is_authenticated %} 
     <div class="row">
         <div class="col">
-            <a class="btn btn-outline-primary btn-block border-0 {% include "_active_url.html" with url_name='index' %}" role="button" href="{% url "index" %}">Всё подряд</a>
+            <a class="btn btn-outline-primary btn-block border-0 {% include "_active_url.html" with url_name='index' %}" role="button" href="{% url "index" %}">All posts</a>
         </div>
         <div class="col">
-            <a class="btn btn-outline-primary btn-block border-0 {% include "_active_url.html" with url_name='follow_index' %}" role="button" href="{% url "follow_index" %}">Подписки</a>
+            <a class="btn btn-outline-primary btn-block border-0 {% include "_active_url.html" with url_name='follow_index' %}" role="button" href="{% url "follow_index" %}">Subscriptions</a>
         </div>
     </div>
 {% endif %}

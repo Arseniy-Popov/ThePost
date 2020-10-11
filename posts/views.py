@@ -20,7 +20,7 @@ def _filter_posts(request, template, add_context={}, **filters):
     )
 
 
-def _paginate(request, items, items_per_page=10):
+def _paginate(request, items, items_per_page=20):
     paginator = Paginator(items, items_per_page)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
@@ -33,8 +33,7 @@ def _login_as_testuser(request):
         login(request, user)
 
 
-def _edit_object(request, object_type, object_id, form, redirect, template):
-    object = get_object_or_404(object_type, id=object_id)
+def _edit_object(request, object, form, redirect, template):
     if object.author != request.user:
         return redirect
     if request.method == "POST":
@@ -87,13 +86,13 @@ def new_post(request):
 
 
 @login_required
-def edit_post(request, post_id):
+def edit_post(request, username, post_id):
+    post = get_object_or_404(Post, id=post_id)
     return _edit_object(
         request=request,
-        object_type=Post,
-        object_id=post_id,
+        object=post,
         form=PostForm,
-        redirect=redirect("view_post", post_id),
+        redirect=redirect("view_post", post.author.username, post.id),
         template="edit_post.html",
     )
 
@@ -108,14 +107,13 @@ def new_comment(request, username, post_id):
 
 
 @login_required
-def edit_comment(request, comment_id):
+def edit_comment(request, username, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
     return _edit_object(
         request=request,
-        username=username,
-        object_type=Comment,
-        object_id=comment_id,
+        object=comment,
         form=CommentForm,
-        redirect=redirect("view_post", username, post_id),
+        redirect=redirect("view_post", comment.post.author.username, comment.post.id),
         template="edit_post.html",
     )
 

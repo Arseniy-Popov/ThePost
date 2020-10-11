@@ -11,7 +11,6 @@ class Post(models.Model):
     group = models.ForeignKey(
         "Group", on_delete=models.SET_NULL, null=True, blank=True, related_name="posts"
     )
-    image = models.ImageField(upload_to="posts/", blank=True, null=True)
 
     def __str__(self):
         return f"Post by {self.author}, {self.date}"

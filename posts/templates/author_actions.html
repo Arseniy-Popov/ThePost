@@ -6,19 +6,19 @@
                 Управление
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <a class="dropdown-item disabled" href=# >Редактировать</a>
-                <a class="dropdown-item" href="{% url 'password_change' %} ">Поменять пароль</a>
+                <a class="dropdown-item disabled" href=# >Edit profile</a>
+                <a class="dropdown-item" href="{% url 'password_change' %} ">Change password</a>
             </div>
         </div>
     {% elif author|is_followed:user %}
         <a class="btn btn-md btn-light" 
             href="{% url 'unfollow' author.username %}" role="button"> 
-            Отписаться 
+            Unsubscribe 
         </a> 
     {% else %}
         <a class="btn btn-md btn-primary" 
             href="{% url 'follow' author.username %}" role="button">
-            Подписаться 
+            Subscribe 
         </a>
     {% endif %}
 </div>

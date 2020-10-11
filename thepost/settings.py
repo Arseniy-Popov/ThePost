@@ -7,7 +7,7 @@ load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = "q#_d^-ul&(p&_kx12o#7=(v!35i3*wat#$$!@3)sr5$&t0^tmw"
-DEBUG = True
+DEBUG = True if not os.getenv("DOCKER") else False
 
 ALLOWED_HOSTS = [
     "*"
@@ -77,10 +77,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 
-LANGUAGE_CODE = "ru"
 TIME_ZONE = "UTC"
-USE_I18N = True
-USE_L10N = True
+USE_I18N = False
+USE_L10N = False
 USE_TZ = True
 
 # Login
