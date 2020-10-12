@@ -1,3 +1,6 @@
-## A blogging platform as a learning project
-- Built with Python, Django, Bootstrap, and PostgreSQL.
-- Deployed to [thepost.arseniypopov.com](https://thepost.arseniypopov.com/) via AWS Elastic Beanstalk, Amazon S3, and Amazon RDS.
+#### About
+- Generic social network with sign up, users, posts, comments on posts, subscribing to users, feeds of followed users
+
+#### Built with
+- Built with `Python`, `Django` and `PostgreSQL` 
+- Deployed to [thepost.arseniypopov.com](http://thepost.arseniypopov.com/) with `AWS EC2`, `gunicorn`, and `nginx`; containerized with `Docker` and `docker-compose`
