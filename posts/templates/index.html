@@ -7,17 +7,17 @@
 {% block content %}
 	<main role="main" class="container">
 		<div class="row justify-content-center">
-			<div class="col-md-8">
-				{% block header %}
-				{% endblock %}
-			    {% block menu %}
-				    <div class="card mb-3 mt-1 border-0">
-					    {% include "menu.html" with user=user follow_index=follow_index%}
-				    </div>
-			    {% endblock %}
-			</div>
-		<div class="row">
-			<div class="col-md-8 offset-md-2">
+		<div class="col-md-7">
+			{% block header %}
+			{% endblock %}
+		    {% block menu %}
+			    <div class="card mb-3 mt-1 border-0">
+				    {% include "menu.html" with user=user follow_index=follow_index%}
+			    </div>
+		    {% endblock %}
+		</div>
+		<div class="row justify-content-center">
+			<div class="col-md-7">
 				{% include "posts.html" with page=page paginator=paginator %}
 			</div>
 		</div>
