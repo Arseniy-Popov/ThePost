@@ -15,6 +15,7 @@ gunicorn = "*"
 python-lorem = "*"
 names = "*"
 pytest-django = "*"
+sorl-thumbnail = "*"
 
 [requires]
 python_version = "3.7"

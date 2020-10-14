@@ -75,7 +75,7 @@ class Command(BaseCommand):
         # comments
         for post in Post.objects.all():
             start_date, end_date = (
-                post.date.timestamp(), 
+                post.date.timestamp(),
                 dt.datetime(year=2020, month=10, day=10).timestamp(),
             )
             for _ in range(random.randint(0, 10)):

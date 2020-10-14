@@ -1,3 +1,5 @@
+__`Python` `Django` `Django REST Framework` `PostgreSQL` `pytest` `Docker` `docker-compose` `AWS EC2` `gunicorn` `nginx`__
+
 #### About
 - Generic social network with sign up, users, posts, comments on posts, subscribing to users, feeds of followed users
 
