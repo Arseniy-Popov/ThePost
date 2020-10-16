@@ -43,10 +43,10 @@ def prepopulated_data(user_1, user_2):
         author=user_2, group=group, text=USER_2_GROUP_POST_TEXT
     )
     comment_1 = Comment.objects.create(
-        author=user_2, text=USER_1_COMMENT_TEXT, post=post_1
+        author=user_2, text=USER_2_COMMENT_TEXT, post=post_1
     )
     comment_2 = Comment.objects.create(
-        author=user_1, text=USER_2_COMMENT_TEXT, post=post_1
+        author=user_1, text=USER_1_COMMENT_TEXT, post=post_1
     )
     Follow.objects.create(follower=user_1, followee=user_2)
     return post_1, post_2, post_3
