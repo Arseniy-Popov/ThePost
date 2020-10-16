@@ -1,31 +1,12 @@
 from collections import namedtuple
 
+from django.test import Client
 import pytest
 
 from posts.models import Comment, Group, User, Post, Follow
 
 
-pytestmark = pytest.mark.django_db
-
-
-# Fixtures and utilities ---------------------------------------------------------------
-
-
 USERNAME_1, USERNAME_2 = "user_1", "user_2"
-
-
-@pytest.fixture
-def user_1():
-    user = User.objects.create_user(username=USERNAME_1)
-    return user
-
-
-@pytest.fixture
-def user_2():
-    user = User.objects.create_user(username=USERNAME_2)
-    return user
-
-
 USER_1_INIT_POST_TEXT = "user 1 init post text"
 USER_2_INIT_POST_TEXT = "user 2 init post text"
 USER_2_GROUP_POST_TEXT = "user 2 init group post text"
@@ -34,187 +15,216 @@ USER_2_COMMENT_TEXT = "user 2 comment text"
 GROUP_SLUG, GROUP_DESC = "cats", "we like cats"
 
 
-@pytest.fixture
-def prepopulated_data(user_1, user_2):
-    group = Group.objects.create(title="cats", slug=GROUP_SLUG, description=GROUP_DESC)
-    post_1 = Post.objects.create(author=user_1, text=USER_1_INIT_POST_TEXT)
-    post_2 = Post.objects.create(author=user_2, text=USER_2_INIT_POST_TEXT)
-    post_3 = Post.objects.create(
-        author=user_2, group=group, text=USER_2_GROUP_POST_TEXT
-    )
-    comment_1 = Comment.objects.create(
-        author=user_2, text=USER_2_COMMENT_TEXT, post=post_1
-    )
-    comment_2 = Comment.objects.create(
-        author=user_1, text=USER_1_COMMENT_TEXT, post=post_1
-    )
-    Follow.objects.create(follower=user_1, followee=user_2)
-    return post_1, post_2, post_3
+@pytest.mark.django_db
+class Tests:
 
+    # Fixtures and utilities -----------------------------------------------------------
 
-def user_client(client, user):
-    client.force_login(user)
-    return client
+    @pytest.fixture(autouse=True)
+    def prepopulated_data(self):
+        self.user_1 = User.objects.create_user(username=USERNAME_1)
+        self.user_2 = User.objects.create_user(username=USERNAME_2)
+        self.group_1 = Group.objects.create(
+            title="cats", slug=GROUP_SLUG, description=GROUP_DESC
+        )
+        self.post_1 = Post.objects.create(
+            author=self.user_1, text=USER_1_INIT_POST_TEXT
+        )
+        self.post_2 = Post.objects.create(
+            author=self.user_2, text=USER_2_INIT_POST_TEXT
+        )
+        self.post_3 = Post.objects.create(
+            author=self.user_2, group=self.group_1, text=USER_2_GROUP_POST_TEXT
+        )
+        self.comment_1 = Comment.objects.create(
+            author=self.user_2, text=USER_2_COMMENT_TEXT, post=self.post_1
+        )
+        self.comment_2 = Comment.objects.create(
+            author=self.user_1, text=USER_1_COMMENT_TEXT, post=self.post_1
+        )
+        Follow.objects.create(follower=self.user_1, followee=self.user_2)
 
+    @pytest.fixture(autouse=True)
+    def client(self):
+        self.client = Client()
 
-def assert_contains(contains, url, client, *users, _not_contains=False):
-    """
-    Assert `contains` is contained in the response from a
-    get request to `url` by the `user`.
-    """
-    client.logout()
-    for user in users:
-        if user:
-            client.force_login(user)
-        if _not_contains:
-            assert contains not in str(client.get(url).content)
-        else:
-            assert contains in str(client.get(url).content)
-        client.logout()
+    def user_client(self, user):
+        self.client.force_login(user)
+        return self.client
 
+    def assert_contains(self, contains, url, *users, _not_contains=False):
+        """
+        Assert `contains` is contained in the response from a
+        get request to `url` by the `user`.
+        """
+        self.client.logout()
+        for user in users:
+            if user:
+                self.client.force_login(user)
+            if _not_contains:
+                assert contains not in str(self.client.get(url).content)
+            else:
+                assert contains in str(self.client.get(url).content)
+            self.client.logout()
 
-def assert_not_contains(contains, url, client, *users):
-    """
-    Assert `contains` is not contained in the response from a
-    get request to `url` by the `user`.
-    """
-    assert_contains(contains, url, client, *users, _not_contains=True)
+    def assert_not_contains(self, contains, url, *users):
+        """
+        Assert `contains` is not contained in the response from a
+        get request to `url` by the `user`.
+        """
+        self.assert_contains(contains, url, *users, _not_contains=True)
 
+    # Tests ----------------------------------------------------------------------------
 
-# Tests --------------------------------------------------------------------------------
+    def test_index(self):
+        self.assert_contains(USER_1_INIT_POST_TEXT, "", self.user_1, self.user_2, None)
+        self.assert_contains(USER_2_INIT_POST_TEXT, "", self.user_1, self.user_2, None)
 
+    def test_group(self):
+        self.assert_not_contains(
+            USER_1_INIT_POST_TEXT, f"group/{GROUP_SLUG}", self.user_1, self.user_2, None
+        )
+        self.assert_contains(
+            USER_2_GROUP_POST_TEXT,
+            f"/group/{GROUP_SLUG}",
+            self.user_1,
+            self.user_2,
+            None,
+        )
 
-def test_index(client, user_1, user_2, prepopulated_data):
-    assert_contains(USER_1_INIT_POST_TEXT, "", client, user_1, user_2, None)
-    assert_contains(USER_2_INIT_POST_TEXT, "", client, user_1, user_2, None)
+    def test_new_post(self):
+        post_text = "user 2 new post text"
+        self.user_client(self.user_2).post("/new", {"text": post_text})
+        self.assert_contains(post_text, "", self.user_1, self.user_2, None)
+        self.assert_contains(
+            post_text, f"/{USERNAME_2}", self.user_1, self.user_2, None
+        )
+        self.assert_contains(post_text, "/follow", self.user_1)
 
+    def test_follow_index(self):
+        self.assert_contains(USER_2_INIT_POST_TEXT, "/follow", self.user_1)
+        self.assert_not_contains(USER_1_INIT_POST_TEXT, "/follow", self.user_2)
 
-def test_group(client, user_1, user_2, prepopulated_data):
-    assert_not_contains(
-        USER_1_INIT_POST_TEXT, f"group/{GROUP_SLUG}", client, user_1, user_2, None
-    )
-    assert_contains(
-        USER_2_GROUP_POST_TEXT, f"/group/{GROUP_SLUG}", client, user_1, user_2, None
-    )
+    def test_profile(self):
+        self.assert_contains(
+            USER_1_INIT_POST_TEXT, f"/{USERNAME_1}", self.user_1, self.user_2, None
+        )
+        self.assert_not_contains(
+            USER_2_INIT_POST_TEXT, f"/{USERNAME_1}", self.user_1, self.user_2, None
+        )
 
+    def test_follow(self):
+        self.user_client(self.user_2).get(f"/{USERNAME_1}/follow")
+        assert (
+            Follow.objects.filter(follower=self.user_2, followee=self.user_1).exists()
+            is True
+        )
+        self.assert_contains(USER_1_INIT_POST_TEXT, "/follow", self.user_2)
+        self.assert_contains(f"@{USERNAME_2}", f"/{USERNAME_1}/followers", self.user_1)
+        self.assert_contains(f"@{USERNAME_1}", f"/{USERNAME_2}/following", self.user_2)
 
-def test_new_post(client, user_1, user_2, prepopulated_data):
-    post_text = "user 2 new post text"
-    user_client(client, user_2).post("/new", {"text": post_text})
-    assert_contains(post_text, "", client, user_1, user_2, None)
-    assert_contains(post_text, f"/{USERNAME_2}", client, user_1, user_2, None)
-    assert_contains(post_text, "/follow", client, user_1)
+    def test_unfollow(self):
+        self.user_client(self.user_1).get(f"/{USERNAME_2}/unfollow")
+        assert (
+            Follow.objects.filter(follower=self.user_1, followee=self.user_2).exists()
+            is False
+        )
+        self.assert_not_contains(USER_2_INIT_POST_TEXT, "/follow", self.user_1)
+        self.assert_not_contains(
+            f"@{USERNAME_1}", f"/{USERNAME_2}/followers", self.user_2
+        )
+        self.assert_not_contains(
+            f"@{USERNAME_2}", f"/{USERNAME_1}/following", self.user_1
+        )
 
+    def test_followers(self):
+        self.assert_contains(f"@{USERNAME_1}", f"/{USERNAME_2}/followers", self.user_2)
 
-def test_follow_index(client, user_1, user_2, prepopulated_data):
-    assert_contains(USER_2_INIT_POST_TEXT, "/follow", client, user_1)
-    assert_not_contains(USER_1_INIT_POST_TEXT, "/follow", client, user_2)
+    def test_following(self):
+        self.assert_contains(f"@{USERNAME_2}", f"/{USERNAME_1}/following", self.user_1)
 
+    def test_view_post(self):
+        self.assert_contains(
+            USER_1_INIT_POST_TEXT,
+            f"/{USERNAME_1}/{self.post_1.id}",
+            self.user_1,
+            self.user_2,
+        )
+        self.assert_contains(
+            USER_1_COMMENT_TEXT,
+            f"/{USERNAME_1}/{self.post_1.id}",
+            self.user_1,
+            self.user_2,
+        )
+        self.assert_contains(
+            USER_2_COMMENT_TEXT,
+            f"/{USERNAME_1}/{self.post_1.id}",
+            self.user_1,
+            self.user_2,
+        )
+        self.assert_contains(
+            USER_2_INIT_POST_TEXT,
+            f"/{USERNAME_2}/{self.post_2.id}",
+            self.user_1,
+            self.user_2,
+        )
 
-def test_profile(client, user_1, user_2, prepopulated_data):
-    assert_contains(
-        USER_1_INIT_POST_TEXT, f"/{USERNAME_1}", client, user_1, user_2, None
-    )
-    assert_not_contains(
-        USER_2_INIT_POST_TEXT, f"/{USERNAME_1}", client, user_1, user_2, None
-    )
+    def test_new_comment(self):
+        user_1_new_comment_text, user_2_new_comment_text = (
+            "user 1 new comment text",
+            "user 2 new comment text",
+        )
+        self.user_client(self.user_1).post(
+            f"/{USERNAME_2}/{self.post_2.id}/comment", {"text": user_1_new_comment_text}
+        )
+        self.user_client(self.user_2).post(
+            f"/{USERNAME_2}/{self.post_2.id}/comment", {"text": user_2_new_comment_text}
+        )
+        assert (
+            Comment.objects.filter(
+                author=self.user_1, text=user_1_new_comment_text, post=self.post_2
+            ).exists()
+            is True
+        )
+        assert (
+            Comment.objects.filter(
+                author=self.user_2, text=user_2_new_comment_text, post=self.post_2
+            ).exists()
+            is True
+        )
+        self.assert_contains(
+            user_1_new_comment_text,
+            f"/{USERNAME_2}/{self.post_2.id}",
+            self.user_1,
+            self.user_2,
+        )
+        self.assert_contains(
+            user_2_new_comment_text,
+            f"/{USERNAME_2}/{self.post_2.id}",
+            self.user_1,
+            self.user_2,
+        )
 
+    def test_edit_post(self):
+        user_2_new_text = "user 2 updated post text"
+        self.user_client(self.user_2).post(
+            f"/{USERNAME_2}/{self.post_2.id}/edit", {"text": user_2_new_text}
+        )
+        assert Post.objects.get(id=self.post_2.id).text == user_2_new_text
+        self.assert_contains(
+            user_2_new_text, f"/{USERNAME_2}/{self.post_2.id}", self.user_1, self.user_2
+        )
+        self.assert_contains(user_2_new_text, f"/follow", self.user_1)
+        self.assert_contains(user_2_new_text, f"", self.user_1, self.user_2, None)
 
-def test_follow(client, user_1, user_2, prepopulated_data):
-    user_client(client, user_2).get(f"/{USERNAME_1}/follow")
-    assert Follow.objects.filter(follower=user_2, followee=user_1).exists() is True
-    assert_contains(USER_1_INIT_POST_TEXT, "/follow", client, user_2)
-    assert_contains(f"@{USERNAME_2}", f"/{USERNAME_1}/followers", client, user_1)
-    assert_contains(f"@{USERNAME_1}", f"/{USERNAME_2}/following", client, user_2)
-
-
-def test_unfollow(client, user_1, user_2, prepopulated_data):
-    user_client(client, user_1).get(f"/{USERNAME_2}/unfollow")
-    assert Follow.objects.filter(follower=user_1, followee=user_2).exists() is False
-    assert_not_contains(USER_2_INIT_POST_TEXT, "/follow", client, user_1)
-    assert_not_contains(f"@{USERNAME_1}", f"/{USERNAME_2}/followers", client, user_2)
-    assert_not_contains(f"@{USERNAME_2}", f"/{USERNAME_1}/following", client, user_1)
-
-
-def test_followers(client, user_1, user_2, prepopulated_data):
-    assert_contains(f"@{USERNAME_1}", f"/{USERNAME_2}/followers", client, user_2)
-
-
-def test_following(client, user_1, user_2, prepopulated_data):
-    assert_contains(f"@{USERNAME_2}", f"/{USERNAME_1}/following", client, user_1)
-
-
-def test_view_post(client, user_1, user_2, prepopulated_data):
-    post_1, post_2, post_3 = prepopulated_data
-    assert_contains(
-        USER_1_INIT_POST_TEXT, f"/{USERNAME_1}/{post_1.id}", client, user_1, user_2
-    )
-    assert_contains(
-        USER_1_COMMENT_TEXT, f"/{USERNAME_1}/{post_1.id}", client, user_1, user_2
-    )
-    assert_contains(
-        USER_2_COMMENT_TEXT, f"/{USERNAME_1}/{post_1.id}", client, user_1, user_2
-    )
-    assert_contains(
-        USER_2_INIT_POST_TEXT, f"/{USERNAME_2}/{post_2.id}", client, user_1, user_2
-    )
-
-
-def test_new_comment(client, user_1, user_2, prepopulated_data):
-    post_1, post_2, post_3 = prepopulated_data
-    user_1_new_comment_text, user_2_new_comment_text = (
-        "user 1 new comment text",
-        "user 2 new comment text",
-    )
-    response = user_client(client, user_1).post(
-        f"/{USERNAME_2}/{post_2.id}/comment", {"text": user_1_new_comment_text}
-    )
-    user_client(client, user_2).post(
-        f"/{USERNAME_2}/{post_2.id}/comment", {"text": user_2_new_comment_text}
-    )
-    assert (
-        Comment.objects.filter(
-            author=user_1, text=user_1_new_comment_text, post=post_2
-        ).exists()
-        is True
-    )
-    assert (
-        Comment.objects.filter(
-            author=user_2, text=user_2_new_comment_text, post=post_2
-        ).exists()
-        is True
-    )
-    assert_contains(
-        user_1_new_comment_text, f"/{USERNAME_2}/{post_2.id}", client, user_1, user_2
-    )
-    assert_contains(
-        user_2_new_comment_text, f"/{USERNAME_2}/{post_2.id}", client, user_1, user_2
-    )
-
-
-def test_edit_post(client, user_1, user_2, prepopulated_data):
-    post_1, post_2, post_3 = prepopulated_data
-    user_2_new_text = "user 2 updated post text"
-    user_client(client, user_2).post(
-        f"/{USERNAME_2}/{post_2.id}/edit", {"text": user_2_new_text}
-    )
-    assert Post.objects.get(id=post_2.id).text == user_2_new_text
-    assert_contains(
-        user_2_new_text, f"/{USERNAME_2}/{post_2.id}", client, user_1, user_2
-    )
-    assert_contains(user_2_new_text, f"/follow", client, user_1)
-    assert_contains(user_2_new_text, f"", client, user_1, user_2, None)
-
-
-def test_edit_comment(client, user_1, user_2, prepopulated_data):
-    post_1, post_2, post_3 = prepopulated_data
-    comment = Comment.objects.get(
-        author=user_2, text=USER_2_COMMENT_TEXT, post=post_1
-    )
-    new_comment_text = "user 2 updated comment text"
-    user_client(client, user_2).post(
-        f"/{USERNAME_2}/comments/{comment.id}", {"text": new_comment_text}
-    )
-    assert_contains(
-        new_comment_text, f"/{USERNAME_1}/{post_1.id}", client, user_1, user_2
-    )
+    def test_edit_comment(self):
+        new_comment_text = "user 2 updated comment text"
+        self.user_client(self.user_2).post(
+            f"/{USERNAME_2}/comments/{self.comment_1.id}", {"text": new_comment_text}
+        )
+        self.assert_contains(
+            new_comment_text,
+            f"/{USERNAME_1}/{self.post_1.id}",
+            self.user_1,
+            self.user_2,
+        )
