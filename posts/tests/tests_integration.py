@@ -43,10 +43,10 @@ def prepopulated_data(user_1, user_2):
         author=user_2, group=group, text=USER_2_GROUP_POST_TEXT
     )
     comment_1 = Comment.objects.create(
-        author=user_1, text=USER_1_COMMENT_TEXT, post=post_1
+        author=user_2, text=USER_1_COMMENT_TEXT, post=post_1
     )
     comment_2 = Comment.objects.create(
-        author=user_2, text=USER_2_COMMENT_TEXT, post=post_1
+        author=user_1, text=USER_2_COMMENT_TEXT, post=post_1
     )
     Follow.objects.create(follower=user_1, followee=user_2)
     return post_1, post_2, post_3
@@ -98,9 +98,8 @@ def test_group(client, user_1, user_2, prepopulated_data):
     )
 
 
-def test_new_post(
-    client, user_1, user_2, prepopulated_data, post_text="user 2 new post text"
-):
+def test_new_post(client, user_1, user_2, prepopulated_data):
+    post_text = "user 2 new post text"
     user_client(client, user_2).post("/new", {"text": post_text})
     assert_contains(post_text, "", client, user_1, user_2, None)
     assert_contains(post_text, f"/{USERNAME_2}", client, user_1, user_2, None)
@@ -174,7 +173,15 @@ def test_new_comment(client, user_1, user_2, prepopulated_data):
         f"/{USERNAME_2}/{post_2.id}/comment", {"text": user_2_new_comment_text}
     )
     assert (
-        Comment.objects.filter(author=user_1, text=user_1_new_comment_text).exists()
+        Comment.objects.filter(
+            author=user_1, text=user_1_new_comment_text, post=post_2
+        ).exists()
+        is True
+    )
+    assert (
+        Comment.objects.filter(
+            author=user_2, text=user_2_new_comment_text, post=post_2
+        ).exists()
         is True
     )
     assert_contains(
@@ -182,4 +189,32 @@ def test_new_comment(client, user_1, user_2, prepopulated_data):
     )
     assert_contains(
         user_2_new_comment_text, f"/{USERNAME_2}/{post_2.id}", client, user_1, user_2
+    )
+
+
+def test_edit_post(client, user_1, user_2, prepopulated_data):
+    post_1, post_2, post_3 = prepopulated_data
+    user_2_new_text = "user 2 updated post text"
+    user_client(client, user_2).post(
+        f"/{USERNAME_2}/{post_2.id}/edit", {"text": user_2_new_text}
+    )
+    assert Post.objects.get(id=post_2.id).text == user_2_new_text
+    assert_contains(
+        user_2_new_text, f"/{USERNAME_2}/{post_2.id}", client, user_1, user_2
+    )
+    assert_contains(user_2_new_text, f"/follow", client, user_1)
+    assert_contains(user_2_new_text, f"", client, user_1, user_2, None)
+
+
+def test_edit_comment(client, user_1, user_2, prepopulated_data):
+    post_1, post_2, post_3 = prepopulated_data
+    comment = Comment.objects.get(
+        author=user_2, text=USER_2_COMMENT_TEXT, post=post_1
+    )
+    new_comment_text = "user 2 updated comment text"
+    user_client(client, user_2).post(
+        f"/{USERNAME_2}/comments/{comment.id}", {"text": new_comment_text}
+    )
+    assert_contains(
+        new_comment_text, f"/{USERNAME_1}/{post_1.id}", client, user_1, user_2
     )
