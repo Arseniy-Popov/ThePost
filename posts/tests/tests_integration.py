@@ -1,6 +1,8 @@
+from collections import namedtuple
+
 import pytest
 
-from posts.models import Group, User, Post, Follow
+from posts.models import Comment, Group, User, Post, Follow
 
 
 pytestmark = pytest.mark.django_db
@@ -26,17 +28,28 @@ def user_2():
 
 USER_1_INIT_POST_TEXT = "user 1 init post text"
 USER_2_INIT_POST_TEXT = "user 2 init post text"
-GROUP_INIT_POST_TEXT = "user 2 init group post text"
+USER_2_GROUP_POST_TEXT = "user 2 init group post text"
+USER_1_COMMENT_TEXT = "user 1 comment text"
+USER_2_COMMENT_TEXT = "user 2 comment text"
 GROUP_SLUG, GROUP_DESC = "cats", "we like cats"
 
 
 @pytest.fixture
 def prepopulated_data(user_1, user_2):
     group = Group.objects.create(title="cats", slug=GROUP_SLUG, description=GROUP_DESC)
-    Post.objects.create(author=user_1, text=USER_1_INIT_POST_TEXT)
-    Post.objects.create(author=user_2, text=USER_2_INIT_POST_TEXT)
-    Post.objects.create(author=user_2, group=group, text=GROUP_INIT_POST_TEXT)
+    post_1 = Post.objects.create(author=user_1, text=USER_1_INIT_POST_TEXT)
+    post_2 = Post.objects.create(author=user_2, text=USER_2_INIT_POST_TEXT)
+    post_3 = Post.objects.create(
+        author=user_2, group=group, text=USER_2_GROUP_POST_TEXT
+    )
+    comment_1 = Comment.objects.create(
+        author=user_1, text=USER_1_COMMENT_TEXT, post=post_1
+    )
+    comment_2 = Comment.objects.create(
+        author=user_2, text=USER_2_COMMENT_TEXT, post=post_1
+    )
     Follow.objects.create(follower=user_1, followee=user_2)
+    return post_1, post_2, post_3
 
 
 def user_client(client, user):
@@ -81,7 +94,7 @@ def test_group(client, user_1, user_2, prepopulated_data):
         USER_1_INIT_POST_TEXT, f"group/{GROUP_SLUG}", client, user_1, user_2, None
     )
     assert_contains(
-        GROUP_INIT_POST_TEXT, f"/group/{GROUP_SLUG}", client, user_1, user_2, None
+        USER_2_GROUP_POST_TEXT, f"/group/{GROUP_SLUG}", client, user_1, user_2, None
     )
 
 
@@ -117,7 +130,7 @@ def test_follow(client, user_1, user_2, prepopulated_data):
 
 
 def test_unfollow(client, user_1, user_2, prepopulated_data):
-    response = user_client(client, user_1).get(f"/{USERNAME_2}/unfollow")
+    user_client(client, user_1).get(f"/{USERNAME_2}/unfollow")
     assert Follow.objects.filter(follower=user_1, followee=user_2).exists() is False
     assert_not_contains(USER_2_INIT_POST_TEXT, "/follow", client, user_1)
     assert_not_contains(f"@{USERNAME_1}", f"/{USERNAME_2}/followers", client, user_2)
@@ -130,3 +143,43 @@ def test_followers(client, user_1, user_2, prepopulated_data):
 
 def test_following(client, user_1, user_2, prepopulated_data):
     assert_contains(f"@{USERNAME_2}", f"/{USERNAME_1}/following", client, user_1)
+
+
+def test_view_post(client, user_1, user_2, prepopulated_data):
+    post_1, post_2, post_3 = prepopulated_data
+    assert_contains(
+        USER_1_INIT_POST_TEXT, f"/{USERNAME_1}/{post_1.id}", client, user_1, user_2
+    )
+    assert_contains(
+        USER_1_COMMENT_TEXT, f"/{USERNAME_1}/{post_1.id}", client, user_1, user_2
+    )
+    assert_contains(
+        USER_2_COMMENT_TEXT, f"/{USERNAME_1}/{post_1.id}", client, user_1, user_2
+    )
+    assert_contains(
+        USER_2_INIT_POST_TEXT, f"/{USERNAME_2}/{post_2.id}", client, user_1, user_2
+    )
+
+
+def test_new_comment(client, user_1, user_2, prepopulated_data):
+    post_1, post_2, post_3 = prepopulated_data
+    user_1_new_comment_text, user_2_new_comment_text = (
+        "user 1 new comment text",
+        "user 2 new comment text",
+    )
+    response = user_client(client, user_1).post(
+        f"/{USERNAME_2}/{post_2.id}/comment", {"text": user_1_new_comment_text}
+    )
+    user_client(client, user_2).post(
+        f"/{USERNAME_2}/{post_2.id}/comment", {"text": user_2_new_comment_text}
+    )
+    assert (
+        Comment.objects.filter(author=user_1, text=user_1_new_comment_text).exists()
+        is True
+    )
+    assert_contains(
+        user_1_new_comment_text, f"/{USERNAME_2}/{post_2.id}", client, user_1, user_2
+    )
+    assert_contains(
+        user_2_new_comment_text, f"/{USERNAME_2}/{post_2.id}", client, user_1, user_2
+    )
