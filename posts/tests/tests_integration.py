@@ -54,8 +54,8 @@ class Tests:
 
     def assert_contains(self, contains, url, *users, _not_contains=False):
         """
-        Assert `contains` is contained in the response from a
-        get request to `url` by the `user`.
+        Assert that for every user in `users`, `contains` is contained
+        in the response from a get request to the `url` by the user.
         """
         self.client.logout()
         for user in users:
@@ -69,12 +69,12 @@ class Tests:
 
     def assert_not_contains(self, contains, url, *users):
         """
-        Assert `contains` is not contained in the response from a
-        get request to `url` by the `user`.
+        Assert that for every user in `users`, `contains` is not contained
+        in the response from a get request to the `url` by the user.
         """
         self.assert_contains(contains, url, *users, _not_contains=True)
 
-    # Tests ----------------------------------------------------------------------------
+    # Test static ----------------------------------------------------------------------
 
     def test_index(self):
         self.assert_contains(USER_1_INIT_POST_TEXT, "", self.user_1, self.user_2, None)
@@ -91,16 +91,7 @@ class Tests:
             self.user_2,
             None,
         )
-
-    def test_new_post(self):
-        post_text = "user 2 new post text"
-        self.user_client(self.user_2).post("/new", {"text": post_text})
-        self.assert_contains(post_text, "", self.user_1, self.user_2, None)
-        self.assert_contains(
-            post_text, f"/{USERNAME_2}", self.user_1, self.user_2, None
-        )
-        self.assert_contains(post_text, "/follow", self.user_1)
-
+        
     def test_follow_index(self):
         self.assert_contains(USER_2_INIT_POST_TEXT, "/follow", self.user_1)
         self.assert_not_contains(USER_1_INIT_POST_TEXT, "/follow", self.user_2)
@@ -111,30 +102,6 @@ class Tests:
         )
         self.assert_not_contains(
             USER_2_INIT_POST_TEXT, f"/{USERNAME_1}", self.user_1, self.user_2, None
-        )
-
-    def test_follow(self):
-        self.user_client(self.user_2).get(f"/{USERNAME_1}/follow")
-        assert (
-            Follow.objects.filter(follower=self.user_2, followee=self.user_1).exists()
-            is True
-        )
-        self.assert_contains(USER_1_INIT_POST_TEXT, "/follow", self.user_2)
-        self.assert_contains(f"@{USERNAME_2}", f"/{USERNAME_1}/followers", self.user_1)
-        self.assert_contains(f"@{USERNAME_1}", f"/{USERNAME_2}/following", self.user_2)
-
-    def test_unfollow(self):
-        self.user_client(self.user_1).get(f"/{USERNAME_2}/unfollow")
-        assert (
-            Follow.objects.filter(follower=self.user_1, followee=self.user_2).exists()
-            is False
-        )
-        self.assert_not_contains(USER_2_INIT_POST_TEXT, "/follow", self.user_1)
-        self.assert_not_contains(
-            f"@{USERNAME_1}", f"/{USERNAME_2}/followers", self.user_2
-        )
-        self.assert_not_contains(
-            f"@{USERNAME_2}", f"/{USERNAME_1}/following", self.user_1
         )
 
     def test_followers(self):
@@ -167,6 +134,41 @@ class Tests:
             f"/{USERNAME_2}/{self.post_2.id}",
             self.user_1,
             self.user_2,
+        )
+
+    # Test actions ---------------------------------------------------------------------
+
+    def test_new_post(self):
+        post_text = "user 2 new post text"
+        self.user_client(self.user_2).post("/new", {"text": post_text})
+        self.assert_contains(post_text, "", self.user_1, self.user_2, None)
+        self.assert_contains(
+            post_text, f"/{USERNAME_2}", self.user_1, self.user_2, None
+        )
+        self.assert_contains(post_text, "/follow", self.user_1)
+
+    def test_follow(self):
+        self.user_client(self.user_2).get(f"/{USERNAME_1}/follow")
+        assert (
+            Follow.objects.filter(follower=self.user_2, followee=self.user_1).exists()
+            is True
+        )
+        self.assert_contains(USER_1_INIT_POST_TEXT, "/follow", self.user_2)
+        self.assert_contains(f"@{USERNAME_2}", f"/{USERNAME_1}/followers", self.user_1)
+        self.assert_contains(f"@{USERNAME_1}", f"/{USERNAME_2}/following", self.user_2)
+
+    def test_unfollow(self):
+        self.user_client(self.user_1).get(f"/{USERNAME_2}/unfollow")
+        assert (
+            Follow.objects.filter(follower=self.user_1, followee=self.user_2).exists()
+            is False
+        )
+        self.assert_not_contains(USER_2_INIT_POST_TEXT, "/follow", self.user_1)
+        self.assert_not_contains(
+            f"@{USERNAME_1}", f"/{USERNAME_2}/followers", self.user_2
+        )
+        self.assert_not_contains(
+            f"@{USERNAME_2}", f"/{USERNAME_1}/following", self.user_1
         )
 
     def test_new_comment(self):
