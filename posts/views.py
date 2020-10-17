@@ -22,8 +22,7 @@ def _filter_posts(request, template, add_context={}, **filters):
 
 def _paginate(request, items, items_per_page=20):
     paginator = Paginator(items, items_per_page)
-    page_number = request.GET.get("page")
-    page = paginator.get_page(page_number)
+    page = paginator.get_page(request.GET.get("page"))
     return paginator, page  # TODO: return dict and rename
 
 

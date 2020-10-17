@@ -17,6 +17,9 @@ GROUP_SLUG, GROUP_DESC = "cats", "we like cats"
 
 @pytest.mark.django_db
 class Tests:
+    """
+    Tests are grouped by url paths.
+    """
 
     # Fixtures and utilities -----------------------------------------------------------
 
@@ -44,28 +47,24 @@ class Tests:
         )
         Follow.objects.create(follower=self.user_1, followee=self.user_2)
 
-    @pytest.fixture(autouse=True)
-    def client(self):
-        self.client = Client()
-
     def user_client(self, user):
-        self.client.force_login(user)
-        return self.client
+        client = Client()
+        client.force_login(user)
+        return client
 
     def assert_contains(self, contains, url, *users, _not_contains=False):
         """
         Assert that for every user in `users`, `contains` is contained
         in the response from a get request to the `url` by the user.
         """
-        self.client.logout()
         for user in users:
+            client = Client()
             if user:
-                self.client.force_login(user)
+                client.force_login(user)
             if _not_contains:
-                assert contains not in str(self.client.get(url).content)
+                assert contains not in str(client.get(url).content)
             else:
-                assert contains in str(self.client.get(url).content)
-            self.client.logout()
+                assert contains in str(client.get(url).content)
 
     def assert_not_contains(self, contains, url, *users):
         """
@@ -91,7 +90,7 @@ class Tests:
             self.user_2,
             None,
         )
-        
+
     def test_follow_index(self):
         self.assert_contains(USER_2_INIT_POST_TEXT, "/follow", self.user_1)
         self.assert_not_contains(USER_1_INIT_POST_TEXT, "/follow", self.user_2)
@@ -106,9 +105,33 @@ class Tests:
 
     def test_followers(self):
         self.assert_contains(f"@{USERNAME_1}", f"/{USERNAME_2}/followers", self.user_2)
+        assert (
+            self.user_1
+            in self.user_client(self.user_2)
+            .get(f"/{USERNAME_2}/followers")
+            .context["page"]
+        )
+        assert (
+            self.user_2
+            not in self.user_client(self.user_2)
+            .get(f"/{USERNAME_2}/followers")
+            .context["page"]
+        )
 
     def test_following(self):
         self.assert_contains(f"@{USERNAME_2}", f"/{USERNAME_1}/following", self.user_1)
+        assert (
+            self.user_2
+            in self.user_client(self.user_1)
+            .get(f"/{USERNAME_1}/following")
+            .context["page"]
+        )
+        assert (
+            self.user_1
+            not in self.user_client(self.user_1)
+            .get(f"/{USERNAME_1}/following")
+            .context["page"]
+        )
 
     def test_view_post(self):
         self.assert_contains(
@@ -141,6 +164,7 @@ class Tests:
     def test_new_post(self):
         post_text = "user 2 new post text"
         self.user_client(self.user_2).post("/new", {"text": post_text})
+        assert Post.objects.filter(author=self.user_2, text=post_text).exists() is True
         self.assert_contains(post_text, "", self.user_1, self.user_2, None)
         self.assert_contains(
             post_text, f"/{USERNAME_2}", self.user_1, self.user_2, None
