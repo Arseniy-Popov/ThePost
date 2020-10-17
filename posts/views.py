@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import cache_page
+from django.views.generic import ListView
 
 from .forms import CommentForm, PostForm
 from .models import Comment, Follow, Group, Post, User
@@ -44,19 +45,41 @@ def _edit_object(request, object, form, redirect, template):
     return render(request, template, {"form": form})
 
 
-def index(request):
-    _login_as_testuser(request)
-    return _filter_posts(request, "index.html")
+class FilterPosts:
+    paginate_by = 20
+    
+    def filter_posts(self):
+        return {}
+    
+    def get_queryset(self):
+        return Post.objects.filter(**self.filter_posts()).order_by("-date")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(self.filter_posts())
+        return context
 
 
-def group(request, slug):
-    filters = {"group": get_object_or_404(Group, slug=slug)}
-    return _filter_posts(request, "group.html", **filters)
+class IndexView(FilterPosts, ListView):
+    template_name = "index.html"
+
+    def render_to_response(self, *args, **kwargs):
+        _login_as_testuser(self.request)
+        return super().render_to_response(*args, **kwargs)
+        
+
+class GroupView(FilterPosts, ListView):
+    template_name = "group.html"
+    
+    def filter_posts(self):
+        return {"group": get_object_or_404(Group, slug=self.kwargs["slug"])}
 
 
-def profile(request, username):
-    filters = {"author": get_object_or_404(User, username=username)}
-    return _filter_posts(request, "profile_posts.html", **filters)
+class ProfileView(FilterPosts, ListView):
+    template_name = "profile_posts.html"
+    
+    def filter_posts(self):
+        return {"author": get_object_or_404(User, username=self.kwargs["username"])}
 
 
 @login_required
@@ -125,14 +148,19 @@ def _500(request):
     return render(request, "misc/500.html", status=500)
 
 
-@login_required
-def follow_index(request):
-    authors_followed = (
-        i.followee for i in Follow.objects.filter(follower=request.user)
-    )
-    filters = {"author__in": authors_followed}
-    add_context = {"follow_index": True}
-    return _filter_posts(request, "follow.html", add_context=add_context, **filters)
+class SubscriptionsPostsView(FilterPosts, ListView):
+    template_name = "subscriptions_posts.html"
+    
+    def filter_posts(self):
+        authors_followed = (
+            i.followee for i in Follow.objects.filter(follower=self.request.user)
+        )
+        return {"author__in": authors_followed}
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"follow_index": True})
+        return context
 
 
 @login_required

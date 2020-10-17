@@ -3,11 +3,11 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    path("", views.IndexView.as_view(), name="index"),
     path("new", views.new_post, name="new_post"),
-    path("group/<slug>", views.group, name="group"),
-    path("follow", views.follow_index, name="follow_index"),
-    path("<username>", views.profile, name="profile"),
+    path("group/<slug>", views.GroupView.as_view(), name="group"),
+    path("follow", views.SubscriptionsPostsView.as_view(), name="follow_index"),
+    path("<username>", views.ProfileView.as_view(), name="profile"),
     path("<username>/follow", views.follow, name="follow"),
     path("<username>/unfollow", views.unfollow, name="unfollow"),
     path("<username>/followers", views.followers, name="followers"),
