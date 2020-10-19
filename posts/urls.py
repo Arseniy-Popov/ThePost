@@ -13,7 +13,7 @@ urlpatterns = [
     path("<username>/followers", views.followers, name="followers"),
     path("<username>/following", views.following, name="following"),
     path("<username>/<int:post_id>", views.SinglePostView.as_view(), name="view_post"),
-    path("<username>/<int:post_id>/comment", views.new_comment, name="new_comment"),
+    path("<username>/<int:post_id>/comment", views.NewCommentView.as_view(), name="new_comment"),
     path("<username>/<int:post_id>/edit", views.edit_post, name="edit_post"),
     path(
         "<username>/comments/<int:comment_id>", views.edit_comment, name="edit_comment"
