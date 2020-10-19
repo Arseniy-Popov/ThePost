@@ -6,9 +6,13 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import cache_page
 from django.views.generic import ListView
+from django.views.generic.edit import FormView
 
 from .forms import CommentForm, PostForm
 from .models import Comment, Follow, Group, Post, User
+
+
+# Utilities ----------------------------------------------------------------------------
 
 
 def _filter_posts(request, template, add_context={}, **filters):
@@ -47,10 +51,10 @@ def _edit_object(request, object, form, redirect, template):
 
 class FilterPosts:
     paginate_by = 20
-    
+
     def filter_posts(self):
         return {}
-    
+
     def get_queryset(self):
         return Post.objects.filter(**self.filter_posts()).order_by("-date")
 
@@ -60,51 +64,75 @@ class FilterPosts:
         return context
 
 
-class IndexView(FilterPosts, ListView):
+# Static -------------------------------------------------------------------------------
+
+
+class IndexPostsView(FilterPosts, ListView):
     template_name = "index.html"
 
     def render_to_response(self, *args, **kwargs):
         _login_as_testuser(self.request)
         return super().render_to_response(*args, **kwargs)
-        
 
-class GroupView(FilterPosts, ListView):
+
+class GroupPostsView(FilterPosts, ListView):
     template_name = "group.html"
-    
+
     def filter_posts(self):
         return {"group": get_object_or_404(Group, slug=self.kwargs["slug"])}
 
 
-class ProfileView(FilterPosts, ListView):
+class ProfilePostsView(FilterPosts, ListView):
     template_name = "profile_posts.html"
-    
+
     def filter_posts(self):
         return {"author": get_object_or_404(User, username=self.kwargs["username"])}
 
 
-@login_required
-def view_post(request, username, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    filters = {"id": post.id}
-    add_context = {
-        "author": get_object_or_404(User, username=username),
-        "comment_form": CommentForm(),
-        "comments": Comment.objects.filter(post=post).order_by("date"),
-    }
-    return _filter_posts(
-        request, "profile_posts.html", add_context=add_context, **filters
-    )
+class SubscriptionsPostsView(FilterPosts, ListView):
+    template_name = "subscriptions_posts.html"
+
+    def filter_posts(self):
+        authors_followed = (
+            i.followee for i in Follow.objects.filter(follower=self.request.user)
+        )
+        return {"author__in": authors_followed}
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({"follow_index": True})
+        return context
 
 
-@login_required
-def new_post(request):
-    if request.method == "POST":
-        form = PostForm(request.POST, request.FILES or None)
-        if form.is_valid():
-            Post(author=request.user, **form.cleaned_data).save()
-            return redirect("index")
-    form = PostForm()
-    return render(request, "new_post.html", {"form": form})
+class SinglePostView(FilterPosts, ListView):
+    template_name = "profile_posts.html"
+
+    def filter_posts(self):
+        self.post = get_object_or_404(Post, id=self.kwargs["post_id"])
+        return {"id": self.kwargs["post_id"]}
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "author": get_object_or_404(User, username=self.kwargs["username"]),
+                "comment_form": CommentForm(),
+                "comments": Comment.objects.filter(post=self.post).order_by("date"),
+            }
+        )
+        return context
+
+
+# Actions ------------------------------------------------------------------------------
+
+
+class NewPostView(FormView):
+    template_name = "new_post.html"
+    form_class = PostForm
+
+    def form_valid(self, form):
+        Post(author=self.request.user, **form.cleaned_data).save()
+        return redirect("index")
 
 
 @login_required
@@ -146,21 +174,6 @@ def _404(request, exception):
 
 def _500(request):
     return render(request, "misc/500.html", status=500)
-
-
-class SubscriptionsPostsView(FilterPosts, ListView):
-    template_name = "subscriptions_posts.html"
-    
-    def filter_posts(self):
-        authors_followed = (
-            i.followee for i in Follow.objects.filter(follower=self.request.user)
-        )
-        return {"author__in": authors_followed}
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update({"follow_index": True})
-        return context
 
 
 @login_required
