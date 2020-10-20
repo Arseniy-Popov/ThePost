@@ -11,7 +11,7 @@
             {% include "profile_card.html" with author=author %}
         </div>
         <div class="col-md-7 mb-3 mt-1">
-            {% include "follows.html" with page=page paginator=paginator %}
+            {% include "follows.html" with page=page_obj paginator=paginator %}
         </div>
     </div>
 </main>

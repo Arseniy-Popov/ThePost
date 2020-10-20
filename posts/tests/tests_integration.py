@@ -163,7 +163,10 @@ class Tests:
 
     def test_new_post(self):
         post_text = "user 2 new post text"
-        self.user_client(self.user_2).post("/new", {"text": post_text})
+        response = self.user_client(self.user_2).post(
+            "/new", {"text": post_text}, follow=True
+        )
+        assert response.redirect_chain[-1][0] == "/"
         assert Post.objects.filter(author=self.user_2, text=post_text).exists() is True
         self.assert_contains(post_text, "", self.user_1, self.user_2, None)
         self.assert_contains(
@@ -172,7 +175,10 @@ class Tests:
         self.assert_contains(post_text, "/follow", self.user_1)
 
     def test_follow(self):
-        self.user_client(self.user_2).get(f"/{USERNAME_1}/follow")
+        response = self.user_client(self.user_2).get(
+            f"/{USERNAME_1}/follow", follow=True
+        )
+        assert response.redirect_chain[-1][0] == f"/{USERNAME_1}"
         assert (
             Follow.objects.filter(follower=self.user_2, followee=self.user_1).exists()
             is True
@@ -182,7 +188,10 @@ class Tests:
         self.assert_contains(f"@{USERNAME_1}", f"/{USERNAME_2}/following", self.user_2)
 
     def test_unfollow(self):
-        self.user_client(self.user_1).get(f"/{USERNAME_2}/unfollow")
+        response = self.user_client(self.user_1).get(
+            f"/{USERNAME_2}/unfollow", follow=True
+        )
+        assert response.redirect_chain[-1][0] == f"/{USERNAME_2}"
         assert (
             Follow.objects.filter(follower=self.user_1, followee=self.user_2).exists()
             is False
@@ -200,9 +209,12 @@ class Tests:
             "user 1 new comment text",
             "user 2 new comment text",
         )
-        self.user_client(self.user_1).post(
-            f"/{USERNAME_2}/{self.post_2.id}/comment", {"text": user_1_new_comment_text}
+        response = self.user_client(self.user_1).post(
+            f"/{USERNAME_2}/{self.post_2.id}/comment",
+            {"text": user_1_new_comment_text},
+            follow=True,
         )
+        assert response.redirect_chain[-1][0] == f"/{USERNAME_2}/{self.post_2.id}"
         self.user_client(self.user_2).post(
             f"/{USERNAME_2}/{self.post_2.id}/comment", {"text": user_2_new_comment_text}
         )
@@ -233,9 +245,12 @@ class Tests:
 
     def test_edit_post(self):
         user_2_new_text = "user 2 updated post text"
-        self.user_client(self.user_2).post(
-            f"/{USERNAME_2}/{self.post_2.id}/edit", {"text": user_2_new_text}
+        response = self.user_client(self.user_2).post(
+            f"/{USERNAME_2}/{self.post_2.id}/edit",
+            {"text": user_2_new_text},
+            follow=True,
         )
+        assert response.redirect_chain[-1][0] == f"/{USERNAME_2}/{self.post_2.id}"
         assert Post.objects.get(id=self.post_2.id).text == user_2_new_text
         self.assert_contains(
             user_2_new_text, f"/{USERNAME_2}/{self.post_2.id}", self.user_1, self.user_2
@@ -245,9 +260,12 @@ class Tests:
 
     def test_edit_comment(self):
         new_comment_text = "user 2 updated comment text"
-        self.user_client(self.user_2).post(
-            f"/{USERNAME_2}/comments/{self.comment_1.id}", {"text": new_comment_text}
+        response = self.user_client(self.user_2).post(
+            f"/{USERNAME_2}/comments/{self.comment_1.id}",
+            {"text": new_comment_text},
+            follow=True,
         )
+        assert response.redirect_chain[-1][0] == f"/{USERNAME_1}/{self.post_1.id}"
         self.assert_contains(
             new_comment_text,
             f"/{USERNAME_1}/{self.post_1.id}",
