@@ -68,11 +68,22 @@ class FilterPosts:
 
 
 class IsOwnerMixin:
-    def get_object(self):
-        self.object = super().get_object()
+    def _redirect_not_owner(self):
+        self.object = self.get_object()
         if self.object.author != self.request.user:
             return redirect(self.get_success_url())
-        return self.object
+
+    def get(self, request, *args, **kwargs):
+        redirect = self._redirect_not_owner()
+        if redirect:
+            return redirect
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        redirect = self._redirect_not_owner()
+        if redirect:
+            return redirect
+        return super().post(request, *args, **kwargs)
 
 
 # Static -------------------------------------------------------------------------------
