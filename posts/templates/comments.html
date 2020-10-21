@@ -3,7 +3,7 @@
 {% for item in items %}
 <p>
     <div class="d-flex justify-content-between align-items-center">
-        <a href="{% url 'profile' item.author.username %}" >
+        <a href="{% url 'profile_posts' item.author.username %}" >
             @{{ item.author.username }}
         </a>
         <small class="text-muted"> {{ item.date|date:"d-M-y G:i" }} </small>

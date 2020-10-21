@@ -1,17 +1,9 @@
-from abc import ABC, abstractmethod
-
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import PermissionDenied
-from django.core.paginator import Paginator
-from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.cache import cache_page
-from django.views.generic import CreateView, ListView, UpdateView
-from django.views.generic.edit import FormView
 from django.urls import reverse, reverse_lazy
-from django.utils.decorators import method_decorator
+from django.views.generic import CreateView, ListView, UpdateView
 
 from .forms import CommentForm, PostForm
 from .models import Comment, Follow, Group, Post, User
@@ -81,7 +73,7 @@ class IsOwnerMixin:
 # Static views -------------------------------------------------------------------------
 
 
-class IndexPostsView(FilterPosts, ListView):
+class IndexPosts(FilterPosts, ListView):
     template_name = "index.html"
 
     def render_to_response(self, *args, **kwargs):
@@ -89,21 +81,21 @@ class IndexPostsView(FilterPosts, ListView):
         return super().render_to_response(*args, **kwargs)
 
 
-class GroupPostsView(FilterPosts, ListView):
+class GroupPosts(FilterPosts, ListView):
     template_name = "group.html"
 
     def _filter_posts(self):
         return {"group": get_object_or_404(Group, slug=self.kwargs["slug"])}
 
 
-class ProfilePostsView(FilterPosts, ListView):
+class ProfilePosts(FilterPosts, ListView):
     template_name = "profile_posts.html"
 
     def _filter_posts(self):
         return {"author": get_object_or_404(User, username=self.kwargs["username"])}
 
 
-class SubscriptionsPostsView(LoginRequiredMixin, FilterPosts, ListView):
+class SubscriptionsPosts(LoginRequiredMixin, FilterPosts, ListView):
     template_name = "subscriptions_posts.html"
 
     def _filter_posts(self):
@@ -114,7 +106,7 @@ class SubscriptionsPostsView(LoginRequiredMixin, FilterPosts, ListView):
         }
 
 
-class SinglePostView(LoginRequiredMixin, FilterPosts, ListView):
+class SinglePost(LoginRequiredMixin, FilterPosts, ListView):
     template_name = "profile_posts.html"
 
     def _filter_posts(self):
@@ -129,7 +121,7 @@ class SinglePostView(LoginRequiredMixin, FilterPosts, ListView):
         }
 
 
-class FollowersView(SupplementContextMixin, ListView):
+class Followers(SupplementContextMixin, ListView):
     paginate_by = 20
     template_name = "profile_follows.html"
 
@@ -142,7 +134,7 @@ class FollowersView(SupplementContextMixin, ListView):
         return {"author": get_object_or_404(User, username=self.kwargs["username"])}
 
 
-class FolloweesView(SupplementContextMixin, ListView):
+class Followees(SupplementContextMixin, ListView):
     paginate_by = 20
     template_name = "profile_follows.html"
 
@@ -158,36 +150,39 @@ class FolloweesView(SupplementContextMixin, ListView):
 # Action views -------------------------------------------------------------------------
 
 
-class NewPostView(LoginRequiredMixin, FormView):
+class NewPost(LoginRequiredMixin, CreateView):
     form_class = PostForm
     template_name = "new_post.html"
-    success_url = reverse_lazy("index")
+    success_url = reverse_lazy("index_posts")
 
     def form_valid(self, form):
-        Post(author=self.request.user, **form.cleaned_data).save()
+        form.instance.author = self.request.user
         return super().form_valid(form)
 
 
-class NewCommentView(LoginRequiredMixin, FormView):
+class NewComment(LoginRequiredMixin, CreateView):
     form_class = CommentForm
 
     def form_valid(self, form):
-        post = get_object_or_404(Post, id=self.kwargs["post_id"])
-        Comment(author=self.request.user, post=post, **form.cleaned_data).save()
-        return redirect("view_post", post.author.username, self.kwargs["post_id"])
+        self.post = get_object_or_404(Post, id=self.kwargs["post_id"])
+        form.instance.post, form.instance.author = self.post, self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse("single_post", kwargs=self.kwargs)
 
 
-class EditPostView(LoginRequiredMixin, IsOwnerMixin, UpdateView):
+class EditPost(LoginRequiredMixin, IsOwnerMixin, UpdateView):
     model = Post
     form_class = PostForm
     pk_url_kwarg = "post_id"
     template_name = "edit_post.html"
 
     def get_success_url(self):
-        return reverse("view_post", args=(self.object.author.username, self.object.id))
+        return reverse("single_post", kwargs=self.kwargs)
 
 
-class EditCommentView(LoginRequiredMixin, IsOwnerMixin, UpdateView):
+class EditComment(LoginRequiredMixin, IsOwnerMixin, UpdateView):
     model = Comment
     form_class = CommentForm
     pk_url_kwarg = "comment_id"
@@ -195,7 +190,7 @@ class EditCommentView(LoginRequiredMixin, IsOwnerMixin, UpdateView):
 
     def get_success_url(self):
         return reverse(
-            "view_post", args=(self.object.post.author.username, self.object.post.id)
+            "single_post", args=(self.object.post.author.username, self.object.post.id)
         )
 
 
@@ -206,9 +201,9 @@ def follow(request, username):
         author == request.user
         or Follow.objects.filter(followee=author, follower=request.user).exists()
     ):
-        return redirect("profile", author)
+        return redirect("profile_posts", author)
     Follow.objects.create(followee=author, follower=request.user)
-    return redirect("profile", username)
+    return redirect("profile_posts", username)
 
 
 @login_required
@@ -216,7 +211,7 @@ def unfollow(request, username):
     author = get_object_or_404(User, username=username)
     if Follow.objects.filter(followee=author, follower=request.user).exists():
         Follow.objects.get(followee=author, follower=request.user).delete()
-    return redirect("profile", username)
+    return redirect("profile_posts", username)
 
 
 def _404(request, exception):

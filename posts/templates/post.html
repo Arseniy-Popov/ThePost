@@ -8,13 +8,13 @@
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center">
             <strong class="d-block text-gray-dark">
-                <a name="post_{{ post.id }}" href="{% url 'profile' post.author.username %}">
+                <a name="post_{{ post.id }}" href="{% url 'profile_posts' post.author.username %}">
                     @{{ post.author }}
                 </a>
             </strong>
             <strong class="d-block text-gray-dark">
                 {% if post.group %}
-                    <a href="{% url 'group' post.group.slug %}">
+                    <a href="{% url 'group_posts' post.group.slug %}">
                         #{{ post.group.slug }}
                     </a>
                 {% endif %}
@@ -28,7 +28,7 @@
         </div>
         <div class="d-flex justify-content-between align-items-center">
            <div class="btn-group ">
-                <a href="{% url 'view_post' post.author post.id %}" class="btn btn-outline-secondary btn-sm border-0" role="button">
+                <a href="{% url 'single_post' post.author post.id %}" class="btn btn-outline-secondary btn-sm border-0" role="button">
                     <i class="far fa-comment"></i> 
                     {% if post|comment_count %}
                         {{ post|comment_count }}

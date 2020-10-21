@@ -1,16 +1,15 @@
-import os
-import lorem
-import random
-import names
 import datetime as dt
+import os
+import random
 
+import lorem
+import names
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
-from django.contrib.auth import get_user_model
 
-from posts.models import Post, Comment, Group, Follow
-
+from posts.models import Comment, Follow, Group, Post
 
 User = get_user_model()
 
