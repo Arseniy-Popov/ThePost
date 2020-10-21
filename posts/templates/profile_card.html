@@ -19,10 +19,10 @@
                     {{ author | follower_count }}
                 </span>
             </a>
-            <a href="{% url 'following' author.username %}" class="list-group-item list-group-item-action {% include "_active_url.html" with url_name='following' %} border-0 d-flex justify-content-between align-items-center">
+            <a href="{% url 'followees' author.username %}" class="list-group-item list-group-item-action {% include "_active_url.html" with url_name='following' %} border-0 d-flex justify-content-between align-items-center">
                 Subscriptions:
                 <span class="badge badge-light">
-                    {{ author | following_count }}
+                    {{ author | followee_count }}
                 </span>
             </a>
             <a href="{% url 'profile' author.username %}" class="list-group-item list-group-item-action {% include "_active_url.html" with url_name='profile' %} border-0 d-flex justify-content-between align-items-center">

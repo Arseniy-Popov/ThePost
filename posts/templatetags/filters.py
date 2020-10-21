@@ -35,5 +35,5 @@ def follower_count(user):
 
 
 @register.filter
-def following_count(user):
+def followee_count(user):
     return Follow.objects.filter(follower=user).count()
