@@ -29,3 +29,5 @@ services:
             - static:/app/static
         ports:
             - ${PORT}:80
+        env_file:
+            - ./.env.docker

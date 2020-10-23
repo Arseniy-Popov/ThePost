@@ -1,5 +1,4 @@
 FROM python:3.7
-ENV DOCKER=True
 WORKDIR /app
 COPY Pipfile* ./
 RUN pip install pipenv
