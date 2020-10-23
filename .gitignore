@@ -3,5 +3,5 @@ __pycache__/
 media/
 sent_emails/
 *.sqlite3
-*.env
+*.env*
 .~c9*

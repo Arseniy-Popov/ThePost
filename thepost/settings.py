@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 
-load_dotenv()
+load_dotenv(os.environ.get("ENV_FILE"))
 
 DEBUG = os.getenv("DEBUG")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -97,8 +97,8 @@ DATABASES = {
         "NAME": os.getenv("POSTGRES_DB"),
         "USER": os.getenv("POSTGRES_USER"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": "db" if os.getenv("DOCKER") else "localhost",
-        "PORT": 5432,
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
     }
 }
 
@@ -111,3 +111,5 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch ./.env.' --prune-empty --tag-name-filter cat -- --all
