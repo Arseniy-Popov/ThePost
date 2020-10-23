@@ -80,14 +80,14 @@ class Tests:
     def test_group_posts(self):
         self.assert_not_contains(
             USER_1_INIT_POST_TEXT,
-            f"group/{GROUP_SLUG}/posts",
+            f"groups/{GROUP_SLUG}/posts",
             self.user_1,
             self.user_2,
             None,
         )
         self.assert_contains(
             USER_2_GROUP_POST_TEXT,
-            f"/group/{GROUP_SLUG}/posts",
+            f"/groups/{GROUP_SLUG}/posts",
             self.user_1,
             self.user_2,
             None,

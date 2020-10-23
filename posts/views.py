@@ -74,6 +74,11 @@ class IsOwnerMixin:
 
 
 class IndexPosts(FilterPosts, ListView):
+    """
+    /
+    Feed of all posts on the platform.
+    """
+
     template_name = "index.html"
 
     def render_to_response(self, *args, **kwargs):
@@ -82,6 +87,11 @@ class IndexPosts(FilterPosts, ListView):
 
 
 class GroupPosts(FilterPosts, ListView):
+    """
+    /groups/<slug>/posts
+    Feed of posts belonging to the group.
+    """
+
     template_name = "group.html"
 
     def _filter_posts(self):
@@ -89,6 +99,11 @@ class GroupPosts(FilterPosts, ListView):
 
 
 class ProfilePosts(FilterPosts, ListView):
+    """
+    /<username>/posts
+    User's profile card together with a feed of the user's posts.
+    """
+
     template_name = "profile_posts.html"
 
     def _filter_posts(self):
@@ -96,6 +111,11 @@ class ProfilePosts(FilterPosts, ListView):
 
 
 class SubscriptionsPosts(LoginRequiredMixin, FilterPosts, ListView):
+    """
+    /feed
+    Feed of posts of authors that are followed by the current user.
+    """
+
     template_name = "subscriptions_posts.html"
 
     def _filter_posts(self):
@@ -107,6 +127,12 @@ class SubscriptionsPosts(LoginRequiredMixin, FilterPosts, ListView):
 
 
 class SinglePost(LoginRequiredMixin, FilterPosts, ListView):
+    """
+    /<username>/posts/<post_id>
+    User's profile card together with a single post, comments on the post,
+    and a comment form.
+    """
+
     template_name = "profile_posts.html"
 
     def _filter_posts(self):
@@ -122,6 +148,11 @@ class SinglePost(LoginRequiredMixin, FilterPosts, ListView):
 
 
 class Followers(SupplementContextMixin, ListView):
+    """
+    /<username>/followers
+    User's profile card together with a list of the user's followers.
+    """
+
     paginate_by = 20
     template_name = "profile_follows.html"
 
@@ -135,6 +166,11 @@ class Followers(SupplementContextMixin, ListView):
 
 
 class Followees(SupplementContextMixin, ListView):
+    """
+    /<username>/followeees
+    User's profile card together with a list of the user's followees.
+    """
+
     paginate_by = 20
     template_name = "profile_follows.html"
 
@@ -151,6 +187,11 @@ class Followees(SupplementContextMixin, ListView):
 
 
 class NewPost(LoginRequiredMixin, CreateView):
+    """
+    /post
+    A form to publish a new post.
+    """
+
     form_class = PostForm
     template_name = "new_post.html"
     success_url = reverse_lazy("index_posts")
@@ -161,6 +202,11 @@ class NewPost(LoginRequiredMixin, CreateView):
 
 
 class NewComment(LoginRequiredMixin, CreateView):
+    """
+    /<username>/posts/<post_id>/comment
+    A form to publish a new comment on the post.
+    """
+
     form_class = CommentForm
 
     def form_valid(self, form):
@@ -173,6 +219,11 @@ class NewComment(LoginRequiredMixin, CreateView):
 
 
 class EditPost(LoginRequiredMixin, IsOwnerMixin, UpdateView):
+    """
+    /<username>/posts/<post_id>/edit
+    A form to edit the post.
+    """
+
     model = Post
     form_class = PostForm
     pk_url_kwarg = "post_id"
@@ -183,6 +234,11 @@ class EditPost(LoginRequiredMixin, IsOwnerMixin, UpdateView):
 
 
 class EditComment(LoginRequiredMixin, IsOwnerMixin, UpdateView):
+    """
+    /<username>/comments/<comment_id>
+    A form to edit the comment.
+    """
+
     model = Comment
     form_class = CommentForm
     pk_url_kwarg = "comment_id"
@@ -196,6 +252,10 @@ class EditComment(LoginRequiredMixin, IsOwnerMixin, UpdateView):
 
 @login_required
 def follow(request, username):
+    """
+    /<username>/follow
+    Follow (subscribe to) the user.
+    """
     author = get_object_or_404(User, username=username)
     if (
         author == request.user
@@ -208,6 +268,10 @@ def follow(request, username):
 
 @login_required
 def unfollow(request, username):
+    """
+    /<username>/unfollow
+    Unfollow (unsubscribe from) the user.
+    """
     author = get_object_or_404(User, username=username)
     if Follow.objects.filter(followee=author, follower=request.user).exists():
         Follow.objects.get(followee=author, follower=request.user).delete()

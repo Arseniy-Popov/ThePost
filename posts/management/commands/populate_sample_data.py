@@ -5,8 +5,6 @@ import random
 import lorem
 import names
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 
 from posts.models import Comment, Follow, Group, Post
