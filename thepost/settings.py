@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 
-load_dotenv(os.environ.get("ENV_FILE"))
+load_dotenv()
 
 DEBUG = int(os.getenv("DEBUG"))
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
