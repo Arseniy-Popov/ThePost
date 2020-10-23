@@ -6,3 +6,8 @@ __`Python` `Django` `PostgreSQL` `pytest` `Docker` `docker-compose` `AWS EC2` `g
 #### Built with
 - Built with `Python`, `Django`, and `PostgreSQL`; tested with `pytest`.
 - Deployed to [thepost.arseniypopov.com](http://thepost.arseniypopov.com/) with `AWS EC2`, `gunicorn`, and `nginx`; containerized with `Docker` and `docker-compose`.
+
+#### Key parts
+- [posts/models.py](posts/models.py)
+- [posts/urls.py](posts/urls.py)
+- [posts/views.py](posts/views.py)

@@ -8,7 +8,7 @@ class PostAdmin(admin.ModelAdmin):
     list_display = ("text", "date", "author")
     search_fields = ("text",)
     list_filter = ("date", "group", "author")
-    empty_value_display = "-пусто-"
+    empty_value_display = "-"
 
 
 @admin.register(Group)

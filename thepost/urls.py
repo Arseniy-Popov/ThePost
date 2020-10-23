@@ -10,18 +10,6 @@ urlpatterns = [
     path("auth/", include("users.urls")),
     path("auth/", include("django.contrib.auth.urls")),
     path("", include("posts.urls")),
-    path(
-        "about-author/",
-        flatpages_views.flatpage,
-        {"url": "/about-author/"},
-        name="about",
-    ),
-    path(
-        "about-tools/", flatpages_views.flatpage, {"url": "/about-tools/"}, name="tools"
-    ),
-    path(
-        "contact-us/", flatpages_views.flatpage, {"url": "/contact-us/"}, name="contact"
-    ),
 ]
 
 

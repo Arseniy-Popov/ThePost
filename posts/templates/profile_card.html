@@ -26,7 +26,7 @@
                 </span>
             </a>
             <a href="{% url 'profile_posts' author.username %}" class="list-group-item list-group-item-action {% include "_active_url.html" with url_name='profile_posts' %} border-0 d-flex justify-content-between align-items-center">
-                Posts: <span class="badge badge-light"> {{ author | author_number_posts }} </span>
+                Posts: <span class="badge badge-light"> {{ author | posts_count }} </span>
             </a>
         </div>
         {% include "author_actions.html" with author=author user=user %}
